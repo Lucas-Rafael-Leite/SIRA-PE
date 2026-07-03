@@ -1,0 +1,114 @@
+// =========================================================
+// SIRA-PE · Design Tokens
+// Inspirado em Gov.br + SUS + Material 3 — paleta institucional
+// =========================================================
+
+:root {
+  // --- Cor · Azul institucional (Gov.br) ---
+  --color-primary-900: #0A2E63;
+  --color-primary-700: #0F3F8A;
+  --color-primary-600: #1451B4; // primária
+  --color-primary-500: #1F63D6;
+  --color-primary-100: #E4ECFB;
+  --color-primary-050: #F2F6FD;
+
+  // --- Cor · Verde SUS ---
+  --color-sus-700: #00703C;
+  --color-sus-600: #00A859; // secundária
+  --color-sus-100: #E1F6EA;
+
+  // --- Cor · Semânticas ---
+  --color-alert-700: #A81F1F;
+  --color-alert-600: #D32F2F;
+  --color-alert-100: #FBE6E6;
+
+  --color-pending-700: #92700A;
+  --color-pending-600: #F2B705;
+  --color-pending-100: #FDF3D6;
+
+  --color-success-600: #00A859;
+  --color-info-600: #1F63D6;
+
+  // --- Neutros ---
+  --color-gray-900: #1F2937;
+  --color-gray-700: #414B5A;
+  --color-gray-500: #5B6472;
+  --color-gray-300: #C6CCD6;
+  --color-gray-150: #E7EBF1;
+  --color-gray-100: #F1F3F7;
+  --color-gray-050: #F8F9FB;
+  --color-white: #FFFFFF;
+
+  // --- Superfícies (tema claro) ---
+  --surface-bg: var(--color-gray-050);
+  --surface-canvas: #EEF2F8;
+  --surface-card: var(--color-white);
+  --surface-elevated: var(--color-white);
+  --surface-header: var(--color-white);
+  --surface-sidebar: #0B3B82;
+  --surface-sidebar-active: rgba(255, 255, 255, 0.12);
+  --surface-border: var(--color-gray-150);
+  --surface-divider: var(--color-gray-150);
+
+  // --- Texto ---
+  --text-primary: var(--color-gray-900);
+  --text-secondary: var(--color-gray-500);
+  --text-on-primary: #FFFFFF;
+  --text-link: var(--color-primary-600);
+
+  // --- Tipografia ---
+  --font-display: 'Public Sans', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+  --font-mono: 'Roboto Mono', ui-monospace, monospace;
+
+  // --- Forma ---
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  // --- Elevação ---
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.14);
+
+  // --- Layout ---
+  --header-height: 64px;
+  --sidebar-width: 264px;
+  --sidebar-width-collapsed: 76px;
+
+  // --- Transições ---
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+}
+
+// =========================================================
+// Tema escuro
+// =========================================================
+[data-theme='dark'] {
+  --surface-bg: #0E1420;
+  --surface-canvas: #0B1119;
+  --surface-card: #161E2C;
+  --surface-elevated: #1B2434;
+  --surface-header: #131B29;
+  --surface-sidebar: #0A1830;
+  --surface-sidebar-active: rgba(255, 255, 255, 0.08);
+  --surface-border: #263248;
+  --surface-divider: #263248;
+
+  --text-primary: #EAF0FA;
+  --text-secondary: #9AA7BD;
+  --text-on-primary: #FFFFFF;
+  --text-link: #6FA0F5;
+
+  --color-primary-100: #16263F;
+  --color-primary-050: #101B2E;
+  --color-sus-100: #113325;
+  --color-alert-100: #3A1616;
+  --color-pending-100: #3A2E0E;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.55);
+}

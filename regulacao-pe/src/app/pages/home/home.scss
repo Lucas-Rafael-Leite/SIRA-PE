@@ -1,0 +1,98 @@
+.panel { padding: 20px; }
+
+.panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+
+  h3 { margin: 0; }
+  a { font-size: 12.5px; font-weight: 600; }
+}
+
+.ranking-list { display: flex; flex-direction: column; gap: 10px; }
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ranking-item__pos {
+  width: 26px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.ranking-item__info {
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+  flex-shrink: 0;
+
+  strong { font-size: 13px; }
+  span { font-size: 11.5px; color: var(--text-secondary); }
+}
+
+.ranking-item__bar {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-gray-100);
+  overflow: hidden;
+}
+[data-theme='dark'] .ranking-item__bar { background: var(--surface-elevated); }
+
+.ranking-item__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary-600), var(--color-sus-600));
+  border-radius: var(--radius-pill);
+}
+
+.ranking-item__valor {
+  width: 28px;
+  text-align: right;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+
+.alert-list { display: flex; flex-direction: column; gap: 4px; }
+
+.alert-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--surface-divider);
+
+  &:last-child { border-bottom: none; }
+}
+
+.alert-list__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+  flex-shrink: 0;
+
+  &--alta, &--critica { background: var(--color-alert-100); color: var(--color-alert-700); }
+  &--media { background: var(--color-pending-100); color: var(--color-pending-700); }
+  &--info { background: var(--color-primary-100); color: var(--color-primary-600); }
+}
+
+.alert-list__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+
+  strong { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  span { font-size: 11.5px; color: var(--text-secondary); }
+}

@@ -1,0 +1,20 @@
+export const ESPECIALIDADES_MOCK: string[] = [
+  "Cardiologia",
+  "Ortopedia",
+  "Dermatologia",
+  "Ginecologia",
+  "Oftalmologia",
+  "Endocrinologia",
+  "Neurologia",
+  "Pediatria",
+  "Urologia",
+  "Psiquiatria",
+  "Otorrinolaringologia",
+  "Pneumologia",
+  "Gastroenterologia",
+  "Reumatologia",
+  "Oncologia",
+  "Fisioterapia",
+  "Nutrição",
+  "Fonoaudiologia"
+];

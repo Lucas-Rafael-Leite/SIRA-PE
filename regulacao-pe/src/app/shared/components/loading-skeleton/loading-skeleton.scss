@@ -1,0 +1,25 @@
+@keyframes skel-pulse {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skel {
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, var(--color-gray-150) 0px, var(--color-gray-100) 40px, var(--color-gray-150) 80px);
+  background-size: 400px 100%;
+  animation: skel-pulse 1.3s ease-in-out infinite;
+}
+[data-theme='dark'] .skel {
+  background: linear-gradient(90deg, #1B2434 0px, #223049 40px, #1B2434 80px);
+  background-size: 400px 100%;
+}
+
+.skel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.skel-card { height: 110px; }
+
+.skel-lines { display: flex; flex-direction: column; gap: 10px; }
+.skel-line { height: 42px; }
