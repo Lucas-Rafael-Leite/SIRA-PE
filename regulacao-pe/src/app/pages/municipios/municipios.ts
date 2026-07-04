@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Breadcrumb } from '../../shared/components/breadcrumb/breadcrumb';
 import { DataTable, ColunaTabela } from '../../shared/components/data-table/data-table';
 import { MunicipioService } from '../../services/municipio.service';
+import { EscopoService } from '../../core/services/escopo.service';
 import { GERES_MOCK } from '../../mock';
 import { Municipio } from '../../models';
 
@@ -29,7 +30,7 @@ interface LinhaMunicipio extends Record<string, unknown> {
         <div class="sira-page-header__title">
           <span class="sira-eyebrow">Regulação estadual</span>
           <h1>Municípios</h1>
-          <p>{{ municipios().length }} municípios monitorados nas 12 GERES de Pernambuco.</p>
+          <p>{{ municipiosNoEscopo().length }} município(s) no seu escopo de visualização.</p>
         </div>
       </div>
 
@@ -76,10 +77,12 @@ export class Municipios {
     { chave: 'indicadorOcupacao', titulo: 'Ocupação' },
   ];
 
+  municipiosNoEscopo = computed(() => this.escopo.filtrarMunicipios(this.municipios()));
+
   filtrados = computed(() => {
     const termo = this.termoSignal();
     const geres = this.geresSignal();
-    return this.municipios().filter((m) => {
+    return this.municipiosNoEscopo().filter((m) => {
       const bateTermo = !termo || m.nome.toLowerCase().includes(termo.toLowerCase());
       const bateGeres = !geres || m.geresNome === geres;
       return bateTermo && bateGeres;
@@ -103,6 +106,7 @@ export class Municipios {
   constructor(
     private municipioService: MunicipioService,
     private router: Router,
+    private escopo: EscopoService,
   ) {
     this.municipioService.listar().subscribe((dados) => {
       this.municipios.set(dados);

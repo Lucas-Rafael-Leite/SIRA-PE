@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Breadcrumb } from '../../shared/components/breadcrumb/breadcrumb';
 import { DataTable, ColunaTabela } from '../../shared/components/data-table/data-table';
 import { RelatorioService } from '../../services/relatorio.service';
 import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Relatorio } from '../../models';
+import { CriarRelatorioDialog } from './dialogs/criar-relatorio-dialog';
 
 interface LinhaRelatorio extends Record<string, unknown> {
   nome: string;
@@ -19,7 +22,7 @@ interface LinhaRelatorio extends Record<string, unknown> {
 @Component({
   selector: 'app-relatorios',
   standalone: true,
-  imports: [FormsModule, Breadcrumb, DataTable],
+  imports: [FormsModule, MatDialogModule, Breadcrumb, DataTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sira-page sira-fade-in">
@@ -31,6 +34,12 @@ interface LinhaRelatorio extends Record<string, unknown> {
           <h1>Relatórios</h1>
           <p>Gere e exporte relatórios consolidados da regulação ambulatorial.</p>
         </div>
+        @if (ehAdmin()) {
+          <button class="btn-primary" (click)="abrirCriarRelatorio()">
+            <span class="material-icons-round">add</span>
+            Criar relatório
+          </button>
+        }
       </div>
 
       <div class="sira-card sira-toolbar">
@@ -69,6 +78,8 @@ export class Relatorios {
   tipoSelecionado = '';
   private tipoSignal = signal('');
 
+  ehAdmin = computed(() => this.auth.perfil() === 'Administrador');
+
   colunas: ColunaTabela<LinhaRelatorio>[] = [
     { chave: 'nome', titulo: 'Relatório', tipo: 'destaque', larguraMin: '260px' },
     { chave: 'tipo', titulo: 'Tipo' },
@@ -90,7 +101,13 @@ export class Relatorios {
   constructor(
     private relatorioService: RelatorioService,
     private notify: NotificationService,
+    private auth: AuthService,
+    private dialog: MatDialog,
   ) {
+    this.carregar();
+  }
+
+  private carregar(): void {
     this.relatorioService.listar().subscribe((dados) => {
       this.relatorios.set(dados);
       this.carregando.set(false);
@@ -103,5 +120,16 @@ export class Relatorios {
 
   baixar(linha: LinhaRelatorio, formato: string): void {
     this.notify.info(`Exportação simulada de "${linha['nome']}" em ${formato} gerada.`);
+  }
+
+  abrirCriarRelatorio(): void {
+    const ref = this.dialog.open(CriarRelatorioDialog, { width: '460px' });
+    ref.afterClosed().subscribe((resultado) => {
+      if (resultado) {
+        this.relatorioService.criar(resultado, this.auth.usuario()?.nome ?? 'Administrador');
+        this.notify.sucesso('Relatório criado com sucesso.');
+        this.carregar();
+      }
+    });
   }
 }

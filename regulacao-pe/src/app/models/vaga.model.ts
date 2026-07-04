@@ -15,3 +15,13 @@ export interface Vaga {
   estrategica: boolean;
   pacienteNome?: string;
 }
+
+/** Assinatura de alerta: a UE pede para ser notificada quando uma vaga da especialidade vagar. */
+export interface AlertaDisponibilidadeVaga {
+  id: string;
+  ueId: string;
+  ueNome: string;
+  especialidade: string;
+  criadoEm: string;
+  ativo: boolean;
+}

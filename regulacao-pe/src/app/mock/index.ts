@@ -12,3 +12,4 @@ export * from './relatorios.mock';
 export * from './usuarios.mock';
 export * from './indicadores.mock';
 export * from './especialidades.mock';
+export * from './alertas-vaga.mock';

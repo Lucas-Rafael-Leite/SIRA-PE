@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Breadcrumb } from '../../shared/components/breadcrumb/breadcrumb';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
@@ -7,13 +7,14 @@ import { LoadingSkeleton } from '../../shared/components/loading-skeleton/loadin
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { UeService } from '../../services/ue.service';
 import { AgendaService } from '../../services/agenda.service';
+import { EscopoService } from '../../core/services/escopo.service';
 import { PROFISSIONAIS_MOCK } from '../../mock';
 import { UnidadeExecutante, Agenda, Profissional } from '../../models';
 
 @Component({
   selector: 'app-unidade-detalhe',
   standalone: true,
-  imports: [Breadcrumb, KpiCard, StatusBadge, LoadingSkeleton, EmptyState],
+  imports: [RouterLink, Breadcrumb, KpiCard, StatusBadge, LoadingSkeleton, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sira-page sira-fade-in">
@@ -22,18 +23,38 @@ import { UnidadeExecutante, Agenda, Profissional } from '../../models';
       } @else if (!ue()) {
         <app-empty-state icon="local_hospital" titulo="Unidade não encontrada" />
       } @else {
-        <app-breadcrumb
-          [itens]="[{ label: 'Dashboard', route: '/home' }, { label: 'Unidades Executantes', route: '/unidades' }, { label: ue()!.nome }]"
-        />
+        @if (!ehMinhaUnidade()) {
+          <app-breadcrumb
+            [itens]="[{ label: 'Dashboard', route: '/home' }, { label: 'Unidades Executantes', route: '/unidades' }, { label: ue()!.nome }]"
+          />
+        } @else {
+          <app-breadcrumb [itens]="[{ label: 'Dashboard', route: '/home' }, { label: 'Minha Unidade' }]" />
+        }
 
         <div class="sira-page-header">
           <div class="sira-page-header__title">
             <span class="sira-eyebrow">CNES {{ ue()!.cnes }} · {{ ue()!.geresNome }}</span>
             <h1>{{ ue()!.nome }}</h1>
-            <p>{{ ue()!.endereco }} · {{ ue()!.telefone }}</p>
+            <p>{{ ue()!.endereco }} · {{ ue()!.telefone }} · Responsável: {{ ue()!.responsavelNome }}</p>
           </div>
-          <app-status-badge [status]="ue()!.status" />
+          <div style="display:flex; gap:8px; align-items:center">
+            <app-status-badge [status]="ue()!.nivelRegulacao" />
+            <app-status-badge [status]="ue()!.status" />
+          </div>
         </div>
+
+        @if (ehMinhaUnidade()) {
+          <div class="sira-card panel" style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
+            <div>
+              <h3 style="margin-bottom:2px">Enviar nova agenda</h3>
+              <p style="margin:0">Envie a agenda de atendimentos da sua unidade para validação.</p>
+            </div>
+            <a class="btn-primary" routerLink="/enviar-agenda">
+              <span class="material-icons-round">upload_file</span>
+              Enviar Agenda
+            </a>
+          </div>
+        }
 
         <div class="sira-grid sira-grid--kpi" style="margin-bottom:20px">
           <app-kpi-card label="Profissionais" [value]="ue()!.profissionaisQtd + ''" icon="groups" tone="primary" />
@@ -96,9 +117,17 @@ export class UnidadeDetalhe {
   agendas = signal<Agenda[]>([]);
   profissionais = signal<Profissional[]>([]);
   carregando = signal(true);
+  ehMinhaUnidade = signal(false);
 
-  constructor(route: ActivatedRoute, ueService: UeService, agendaService: AgendaService) {
-    const id = route.snapshot.paramMap.get('id') ?? '';
+  constructor(
+    route: ActivatedRoute,
+    ueService: UeService,
+    agendaService: AgendaService,
+    escopo: EscopoService,
+  ) {
+    const idDaRota = route.snapshot.paramMap.get('id');
+    const id = idDaRota ?? escopo.vinculoId() ?? '';
+    this.ehMinhaUnidade.set(!idDaRota);
 
     ueService.obterPorId(id).subscribe((u) => {
       this.ue.set(u);

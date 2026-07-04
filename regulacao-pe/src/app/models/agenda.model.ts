@@ -4,6 +4,9 @@ export interface Agenda {
   id: string;
   ueId: string;
   ueNome: string;
+  municipioNome: string;
+  geresNome: string;
+  responsavelUeNome: string;
   especialidade: string;
   profissionalNome: string;
   periodo: string;

@@ -1,0 +1,19 @@
+.panel { padding: 8px 24px; }
+
+.widget-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--surface-divider);
+  cursor: pointer;
+
+  &:last-child { border-bottom: none; }
+
+  div { display: flex; flex-direction: column; gap: 2px; }
+  strong { font-size: 14px; }
+  span { font-size: 12px; color: var(--text-secondary); }
+
+  input { width: 20px; height: 20px; accent-color: var(--color-primary-600); flex-shrink: 0; }
+}

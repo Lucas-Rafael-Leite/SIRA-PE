@@ -8,6 +8,27 @@
   h3 { margin: 0; }
 }
 
+.criar-alerta-vaga {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip__remover {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  margin-left: 2px;
+
+  .material-icons-round { font-size: 14px; }
+}
+
 .heatmap { display: flex; flex-direction: column; gap: 4px; overflow-x: auto; }
 
 .heatmap__row {

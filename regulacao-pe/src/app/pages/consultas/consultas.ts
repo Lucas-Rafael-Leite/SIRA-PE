@@ -5,6 +5,7 @@ import { Breadcrumb } from '../../shared/components/breadcrumb/breadcrumb';
 import { DataTable, ColunaTabela } from '../../shared/components/data-table/data-table';
 import { ConsultaService } from '../../services/consulta.service';
 import { NotificationService } from '../../services/notification.service';
+import { EscopoService } from '../../core/services/escopo.service';
 import { ESPECIALIDADES_MOCK } from '../../mock';
 import { Consulta } from '../../models';
 import { CancelarConsultaDialog } from './dialogs/cancelar-consulta-dialog';
@@ -34,7 +35,7 @@ interface LinhaConsulta extends Record<string, unknown> {
         <div class="sira-page-header__title">
           <span class="sira-eyebrow">Regulação de acesso</span>
           <h1>Consultas</h1>
-          <p>{{ consultas().length }} consultas registradas no sistema.</p>
+          <p>{{ linhas().length }} consulta(s) no seu escopo de visualização.</p>
         </div>
         <button class="btn-primary" (click)="abrirMarcarConsulta()">
           <span class="material-icons-round">add</span>
@@ -106,11 +107,13 @@ export class Consultas {
     { chave: 'status', titulo: 'Status', tipo: 'badge' },
   ];
 
+  noEscopo = computed(() => this.escopo.filtrarPorHierarquia(this.consultas()));
+
   filtrados = computed(() => {
     const termo = this.termoSignal().toLowerCase();
     const esp = this.especialidadeSignal();
     const status = this.statusSignal();
-    return this.consultas().filter((c) => {
+    return this.noEscopo().filter((c) => {
       const bateTermo = !termo || c.pacienteNome.toLowerCase().includes(termo) || c.protocolo.toLowerCase().includes(termo);
       const bateEsp = !esp || c.especialidade === esp;
       const bateStatus = !status || c.status === status;
@@ -135,6 +138,7 @@ export class Consultas {
     private consultaService: ConsultaService,
     private dialog: MatDialog,
     private notify: NotificationService,
+    private escopo: EscopoService,
   ) {
     this.carregar();
   }

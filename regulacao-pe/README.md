@@ -248,4 +248,63 @@ Classes utilitárias globais (em `src/styles.scss`): `.sira-page`, `.sira-page-h
 
 ---
 
+## 13. Changelog — ajustes de perfis, escopo e correções de bugs
+
+Esta versão incorporou uma revisão completa de permissões e visibilidade de dados por perfil,
+além de correções de bugs relatados. Resumo das mudanças:
+
+### Novas telas
+- **Enviar Agenda** (`/enviar-agenda`, exclusiva da Unidade Executante): wizard de upload,
+  preview, validação simulada e confirmação — completando a tela prevista no escopo original que
+  ainda não existia.
+- **Agendas Recebidas** (`/agendas-recebidas`, GERES/GRAMB/Administrador): GERES vê agendas das UEs
+  da sua GERES; GRAMB vê agendas das UEs sob regulação central; Administrador vê todas as agendas,
+  com o responsável de cada UE.
+- **Minha Unidade** (`/minha-unidade`, exclusiva da UE): reaproveita a tela de detalhe da UE fixada
+  na própria unidade do usuário logado, com atalho direto para "Enviar Agenda".
+- **Auditoria de Vagas** (`/auditoria-vagas`, todos os perfis): trilha de alterações no cadastro de
+  vagas, separada da auditoria interna do sistema (que agora é exclusiva do Administrador).
+- **Dados do CMCE** e **Gerenciar Dashboards** (`/admin/cmce`, `/admin/dashboards`, exclusivas do
+  Administrador): importação simulada de dados do CMCE e controle de quais painéis aparecem no
+  Dashboard geral.
+- Ação **Criar relatório**, disponível apenas para o Administrador na tela de Relatórios.
+
+### Escopo de dados por perfil (`core/services/escopo.service.ts`)
+Um novo `EscopoService` centraliza as regras de visibilidade hierárquica (Administrador/GRAMB vêem
+tudo → GERES vê sua região → Município vê suas UEs → UE vê apenas a si mesma). Ele é usado nas
+telas de Municípios, Unidades, Consultas, Painel de Vagas e Home para filtrar os dados mockados de
+acordo com o `vinculoId` do usuário logado (novo campo no `Usuario`, também adicionado a `Alerta`
+como `destinoId`/`autorPerfil` para permitir notificações direcionadas de verdade).
+
+### Ajustes por perfil
+- **UE**: dashboard próprio (vagas e agenda, não o dashboard estadual), não vê Municípios/Relatórios/
+  Dashboard Analítico/Auditoria completa, não marca vaga como estratégica, não envia alertas (só
+  recebe notificações quando destinadas a ela) e agora pode criar **alertas de disponibilidade de
+  vaga** por especialidade no Painel de Vagas.
+- **Município**: só visualiza UEs e consultas do próprio município; sem histórico de alertas
+  (apenas notificações recebidas); Relatórios removido do menu.
+- **GERES**: só visualiza municípios/UEs da própria GERES; envia alertas apenas para município/UE
+  sob sua responsabilidade; histórico de alertas mostra apenas o que a própria GERES enviou.
+- **GRAMB**: opção de alternar entre "todas as UEs" e "apenas minhas UEs" (regulação central);
+  coluna indicando se a UE é regulada a nível central ou por uma GERES.
+- **Administrador**: seção de agendas com o responsável de cada UE, criação de relatórios,
+  importação de dados do CMCE, gerenciamento de dashboards; auditoria interna do sistema restrita
+  a este perfil.
+
+### Correções de bugs
+- **Menu lateral**: o item "Dashboard Analítico" ficava com o texto cortado sem reticências,
+  desalinhando o ícone — corrigido com `text-overflow: ellipsis` e `flex` adequado no rótulo.
+- **Marcar consulta**: o diálogo usava `MatStepper` do Angular Material, que trazia cores do tema
+  padrão (fora da paleta institucional) e apresentava comportamento inconsistente ao avançar/voltar
+  etapas. Foi reescrito como um stepper próprio, controlado por signals, seguindo os tokens do
+  Design System.
+- **Busca global**: o campo de busca no header nunca estava conectado a nenhuma ação. Agora ele
+  navega para o Painel de Vagas com o termo pesquisado, e a própria tela ganhou um campo de busca
+  local que filtra vagas por unidade, especialidade ou profissional.
+
+> Observação de escopo: como o modelo de dados de "vaga" não possui um campo literal de "nome", a
+> busca por vaga considera unidade executante, especialidade e profissional como critérios de
+> busca — os atributos que efetivamente identificam uma vaga no sistema.
+
+
 Governo do Estado de Pernambuco · Secretaria Estadual de Saúde · Protótipo de demonstração.

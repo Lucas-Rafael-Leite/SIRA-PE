@@ -24,6 +24,8 @@ const STATUS_MAP: Record<string, { label: string; tone: StatusTone }> = {
   media: { label: 'Média', tone: 'warning' },
   alta: { label: 'Alta', tone: 'error' },
   critica: { label: 'Crítica', tone: 'error' },
+  central: { label: 'Regulação central (GRAMB)', tone: 'info' },
+  geres: { label: 'Regulação por GERES', tone: 'neutral' },
 };
 
 @Component({

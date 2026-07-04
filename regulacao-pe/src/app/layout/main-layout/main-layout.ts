@@ -25,9 +25,10 @@ import { AlertaService } from '../../services/alerta.service';
         <app-header
           [usuario]="auth.usuario()"
           [temaEscuro]="theme.tema() === 'dark'"
-          [notificacoes]="alertaService.naoLidos()"
+          [notificacoes]="alertaService.naoLidosPara(auth.usuario())"
           (alternarSidebar)="sidebarColapsada.set(!sidebarColapsada())"
           (alternarTema)="theme.alternar()"
+          (buscarGlobal)="buscarGlobal($event)"
         />
 
         <main class="layout__main">
@@ -47,10 +48,16 @@ export class MainLayout {
     public theme: ThemeService,
     private menuService: MenuService,
     public alertaService: AlertaService,
-    router: Router,
+    private router: Router,
   ) {
     router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
       if (window.innerWidth < 900) this.sidebarColapsada.set(true);
     });
+  }
+
+  buscarGlobal(termo: string): void {
+    const valor = termo.trim();
+    if (!valor) return;
+    this.router.navigate(['/painel-vagas'], { queryParams: { busca: valor } });
   }
 }

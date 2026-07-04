@@ -1,4 +1,4 @@
-.conteudo { display: flex; flex-direction: column; gap: 14px; min-width: 400px; padding-top: 6px; }
+.conteudo { display: flex; flex-direction: column; gap: 14px; min-width: 380px; padding-top: 6px; }
 
 .campo {
   display: flex;
@@ -8,7 +8,7 @@
   font-weight: 600;
   color: var(--text-secondary);
 
-  input, select, textarea {
+  input, select {
     border: 1px solid var(--surface-border);
     border-radius: var(--radius-md);
     padding: 10px 12px;
@@ -16,17 +16,7 @@
     font-family: var(--font-body);
     color: var(--text-primary);
     background: var(--surface-card);
-    resize: vertical;
   }
 }
 
 .acoes { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 0 4px; }
-
-.aviso {
-  background: var(--color-primary-050);
-  color: var(--color-primary-700);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
-  font-size: 12.5px;
-  margin: 0;
-}
