@@ -1,10 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { PACIENTES_MOCK, ESPECIALIDADES_MOCK, UES_MOCK } from '../../../mock';
-import { Paciente, UnidadeExecutante } from '../../../models';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { VagaService } from '../../../services/vaga.service';
+import { PacienteService } from '../../../services/paciente.service';
+import { NotificationService } from '../../../services/notification.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { EscopoService } from '../../../core/services/escopo.service';
+import { Paciente, Vaga } from '../../../models';
 
-const ETAPAS = ['Paciente', 'Especialidade e UE', 'Agenda', 'Resumo'] as const;
+export interface MarcarConsultaDialogData {
+  vagaPreSelecionada?: Vaga;
+}
+
+type Fase = 'vaga' | 'paciente' | 'cmce-form' | 'cmce-confirmacao' | 'aguardando-municipio' | 'resumo';
 
 @Component({
   selector: 'app-marcar-consulta-dialog',
@@ -15,23 +23,44 @@ const ETAPAS = ['Paciente', 'Especialidade e UE', 'Agenda', 'Resumo'] as const;
     <h2 mat-dialog-title>Marcar consulta</h2>
 
     <div class="stepper-trilha">
-      @for (etapa of etapas; track etapa; let i = $index) {
-        <div class="stepper-trilha__item" [class.stepper-trilha__item--ativo]="i === passo()" [class.stepper-trilha__item--concluido]="i < passo()">
+      @for (f of fasesVisiveis(); track f; let i = $index) {
+        <div class="stepper-trilha__item" [class.stepper-trilha__item--ativo]="f === fase()" [class.stepper-trilha__item--concluido]="indiceFase() > i">
           <span class="stepper-trilha__bola">
-            @if (i < passo()) {
-              <span class="material-icons-round">check</span>
-            } @else {
-              {{ i + 1 }}
-            }
+            @if (indiceFase() > i) { <span class="material-icons-round">check</span> } @else { {{ i + 1 }} }
           </span>
-          <span class="stepper-trilha__label">{{ etapa }}</span>
+          <span class="stepper-trilha__label">{{ rotuloFase(f) }}</span>
         </div>
-        @if (i < etapas.length - 1) { <span class="stepper-trilha__linha"></span> }
+        @if (i < fasesVisiveis().length - 1) { <span class="stepper-trilha__linha"></span> }
       }
     </div>
 
     <div mat-dialog-content class="conteudo">
-      @if (passo() === 0) {
+      <!-- ===== Escolher vaga ===== -->
+      @if (fase() === 'vaga') {
+        <p class="instrucao">Selecione uma vaga disponível dentro do seu escopo de atuação.</p>
+        <label class="campo">
+          <span>Buscar por especialidade ou unidade</span>
+          <input type="text" [(ngModel)]="termoVaga" (ngModelChange)="termoVagaSignal.set($event)" placeholder="Ex: Cardiologia, Hospital..." />
+        </label>
+        <div class="lista-selecao">
+          @if (vagasDisponiveisFiltradas().length === 0) {
+            <p class="vazio">Nenhuma vaga disponível encontrada no seu escopo.</p>
+          }
+          @for (v of vagasDisponiveisFiltradas(); track v.id) {
+            <button
+              class="item-selecao"
+              [class.item-selecao--ativo]="vagaSelecionada()?.id === v.id"
+              (click)="vagaSelecionada.set(v)"
+            >
+              <strong>{{ v.especialidade }} · {{ v.ueNome }}</strong>
+              <span>{{ v.municipioNome }} · {{ v.data }} {{ v.hora }} · {{ v.profissionalNome }}</span>
+            </button>
+          }
+        </div>
+      }
+
+      <!-- ===== Escolher paciente ===== -->
+      @if (fase() === 'paciente') {
         <label class="campo">
           <span>Buscar paciente</span>
           <input type="text" [(ngModel)]="termoPaciente" (ngModelChange)="termoPacienteSignal.set($event)" placeholder="Nome do paciente..." />
@@ -50,55 +79,78 @@ const ETAPAS = ['Paciente', 'Especialidade e UE', 'Agenda', 'Resumo'] as const;
         </div>
       }
 
-      @if (passo() === 1) {
-        <label class="campo">
-          <span>Especialidade</span>
-          <select [(ngModel)]="especialidadeValor">
-            <option value="">Selecione</option>
-            @for (e of especialidades; track e) { <option [value]="e">{{ e }}</option> }
-          </select>
-        </label>
-        <label class="campo">
-          <span>Unidade Executante</span>
-          <select [(ngModel)]="ueValor">
-            <option value="">Selecione</option>
-            @for (u of unidades; track u.id) { <option [value]="u.id">{{ u.nome }} · {{ u.municipioNome }}</option> }
-          </select>
-        </label>
-      }
-
-      @if (passo() === 2) {
-        <label class="campo">
-          <span>Data</span>
-          <input type="date" [(ngModel)]="dataValor" />
-        </label>
-        <label class="campo">
-          <span>Horário</span>
-          <select [(ngModel)]="horaValor">
-            <option value="">Selecione</option>
-            @for (h of horarios; track h) { <option [value]="h">{{ h }}</option> }
-          </select>
-        </label>
-      }
-
-      @if (passo() === 3) {
+      <!-- ===== Preenchimento no CMCE (todos exceto UE) ===== -->
+      @if (fase() === 'cmce-form') {
+        <p class="instrucao">
+          O sistema irá se comunicar com o CMCE para efetivar a marcação. Confira os dados abaixo.
+        </p>
         <div class="resumo-final">
           <div class="resumo-final__linha"><span>Paciente</span><strong>{{ pacienteSelecionado()?.nome }}</strong></div>
-          <div class="resumo-final__linha"><span>Especialidade</span><strong>{{ especialidadeValor }}</strong></div>
-          <div class="resumo-final__linha"><span>Unidade</span><strong>{{ ueSelecionada()?.nome }}</strong></div>
-          <div class="resumo-final__linha"><span>Data / Horário</span><strong>{{ dataValor }} · {{ horaValor }}</strong></div>
+          <div class="resumo-final__linha"><span>Cartão SUS</span><strong>{{ pacienteSelecionado()?.cartaoSus }}</strong></div>
+          <div class="resumo-final__linha"><span>Procedimento</span><strong>{{ vagaSelecionada()?.especialidade }}</strong></div>
+          <div class="resumo-final__linha"><span>Unidade</span><strong>{{ vagaSelecionada()?.ueNome }}</strong></div>
+          <div class="resumo-final__linha"><span>Data / Horário</span><strong>{{ vagaSelecionada()?.data }} · {{ vagaSelecionada()?.hora }}</strong></div>
+        </div>
+        <button class="btn-secondary" style="margin-top:14px" (click)="exportarModeloCmce()">
+          <span class="material-icons-round">download</span>
+          Exportar modelo para preenchimento manual no CMCE
+        </button>
+      }
+
+      <!-- ===== Confirmação no CMCE ===== -->
+      @if (fase() === 'cmce-confirmacao') {
+        <div class="cmce-aviso">
+          <span class="material-icons-round">sync</span>
+          Aguardando confirmação de que o status da vaga foi atualizado no CMCE.
+        </div>
+        <label class="switch-item">
+          <input type="checkbox" [(ngModel)]="confirmadoNoCmce" />
+          <span>Confirmo que a marcação foi registrada e o status da vaga foi atualizado no CMCE</span>
+        </label>
+      }
+
+      <!-- ===== UE: aguardando marcação pelo município ===== -->
+      @if (fase() === 'aguardando-municipio') {
+        <div class="cmce-aviso">
+          <span class="material-icons-round">hourglass_top</span>
+          Como Unidade Executante, a marcação final no CMCE é feita pelo município. Uma notificação
+          foi enviada para {{ vagaSelecionada()?.municipioNome }} solicitando a marcação desta vaga.
+        </div>
+        <p class="instrucao" style="margin-top:12px">
+          Para fins de demonstração deste protótipo, use o botão abaixo para simular a confirmação
+          da marcação pelo município.
+        </p>
+        <button class="btn-secondary" (click)="simularMarcacaoMunicipio()">
+          <span class="material-icons-round">how_to_reg</span>
+          Simular marcação pelo município
+        </button>
+        @if (municipioSimulou()) {
+          <div class="validacao-ok" style="margin-top:12px">
+            <span class="material-icons-round">check_circle</span>
+            O município confirmou a marcação. Você já pode avançar.
+          </div>
+        }
+      }
+
+      <!-- ===== Resumo final ===== -->
+      @if (fase() === 'resumo') {
+        <div class="resumo-final">
+          <div class="resumo-final__linha"><span>Paciente</span><strong>{{ pacienteSelecionado()?.nome }}</strong></div>
+          <div class="resumo-final__linha"><span>Especialidade</span><strong>{{ vagaSelecionada()?.especialidade }}</strong></div>
+          <div class="resumo-final__linha"><span>Unidade</span><strong>{{ vagaSelecionada()?.ueNome }}</strong></div>
+          <div class="resumo-final__linha"><span>Data / Horário</span><strong>{{ vagaSelecionada()?.data }} · {{ vagaSelecionada()?.hora }}</strong></div>
         </div>
       }
     </div>
 
     <div mat-dialog-actions class="acoes">
-      @if (passo() > 0) {
+      @if (fase() !== 'vaga' || data.vagaPreSelecionada) {
         <button class="btn-secondary" (click)="voltar()">Voltar</button>
       } @else {
         <button class="btn-secondary" (click)="ref.close(null)">Cancelar</button>
       }
 
-      @if (passo() < 3) {
+      @if (fase() !== 'resumo') {
         <button class="btn-primary" [disabled]="!podeAvancar()" (click)="avancar()">Avançar</button>
       } @else {
         <button class="btn-primary" (click)="confirmar()">
@@ -112,58 +164,118 @@ const ETAPAS = ['Paciente', 'Especialidade e UE', 'Agenda', 'Resumo'] as const;
 })
 export class MarcarConsultaDialog {
   ref = inject(MatDialogRef<MarcarConsultaDialog>);
+  data = inject<MarcarConsultaDialogData>(MAT_DIALOG_DATA, { optional: true }) ?? {};
 
-  etapas = ETAPAS;
-  passo = signal(0);
+  private vagaService = inject(VagaService);
+  private pacienteService = inject(PacienteService);
+  private notify = inject(NotificationService);
+  private auth = inject(AuthService);
+  private escopo = inject(EscopoService);
 
-  especialidades = ESPECIALIDADES_MOCK;
-  unidades = UES_MOCK.slice(0, 40);
-  horarios = ['07:00', '07:20', '08:00', '09:00', '10:00', '13:00', '14:00', '15:00', '16:00'];
+  ehUe = computed(() => this.auth.perfil() === 'UnidadeExecutante');
+
+  fase = signal<Fase>('vaga');
+  confirmadoNoCmce = signal(false);
+  municipioSimulou = signal(false);
+
+  termoVaga = '';
+  termoVagaSignal = signal('');
+  vagaSelecionada = signal<Vaga | undefined>(this.data.vagaPreSelecionada);
 
   termoPaciente = '';
   termoPacienteSignal = signal('');
   pacienteSelecionado = signal<Paciente | undefined>(undefined);
 
-  especialidadeValor = '';
-  ueValor = '';
-  dataValor = '';
-  horaValor = '';
-
-  pacientesFiltrados = computed(() => {
-    const termo = this.termoPacienteSignal().toLowerCase();
-    if (!termo) return PACIENTES_MOCK.slice(0, 6);
-    return PACIENTES_MOCK.filter((p) => p.nome.toLowerCase().includes(termo)).slice(0, 8);
+  vagasDisponiveisFiltradas = computed(() => {
+    const termo = this.termoVagaSignal().toLowerCase();
+    const todasNoEscopo = this.escopo.filtrarPorHierarquia(
+      this.listaVagasBase().filter((v) => v.status === 'disponivel'),
+    );
+    if (!termo) return todasNoEscopo.slice(0, 30);
+    return todasNoEscopo
+      .filter((v) => v.especialidade.toLowerCase().includes(termo) || v.ueNome.toLowerCase().includes(termo))
+      .slice(0, 30);
   });
 
-  ueSelecionada = computed<UnidadeExecutante | undefined>(() =>
-    this.unidades.find((u) => u.id === this.ueValor),
-  );
+  pacientesFiltrados = computed(() => this.pacienteService.buscar(this.termoPacienteSignal()));
+
+  private listaVagasBaseCache: Vaga[] = [];
+  listaVagasBase(): Vaga[] {
+    return this.listaVagasBaseCache;
+  }
+
+  constructor() {
+    this.vagaService.listar().subscribe((v) => (this.listaVagasBaseCache = v));
+    if (this.data.vagaPreSelecionada) {
+      this.fase.set('paciente');
+    }
+  }
+
+  fasesVisiveis = computed<Fase[]>(() => {
+    if (this.ehUe()) return ['vaga', 'paciente', 'aguardando-municipio', 'resumo'];
+    return ['vaga', 'paciente', 'cmce-form', 'cmce-confirmacao', 'resumo'];
+  });
+
+  indiceFase = computed(() => this.fasesVisiveis().indexOf(this.fase()));
+
+  rotuloFase(f: Fase): string {
+    const mapa: Record<Fase, string> = {
+      vaga: 'Vaga',
+      paciente: 'Paciente',
+      'cmce-form': 'Preenchimento CMCE',
+      'cmce-confirmacao': 'Confirmação CMCE',
+      'aguardando-municipio': 'Aguardando município',
+      resumo: 'Resumo',
+    };
+    return mapa[f];
+  }
 
   podeAvancar(): boolean {
-    if (this.passo() === 0) return !!this.pacienteSelecionado();
-    if (this.passo() === 1) return !!this.especialidadeValor && !!this.ueValor;
-    if (this.passo() === 2) return !!this.dataValor && !!this.horaValor;
+    if (this.fase() === 'vaga') return !!this.vagaSelecionada();
+    if (this.fase() === 'paciente') return !!this.pacienteSelecionado();
+    if (this.fase() === 'cmce-confirmacao') return this.confirmadoNoCmce();
+    if (this.fase() === 'aguardando-municipio') return this.municipioSimulou();
     return true;
   }
 
   avancar(): void {
-    if (this.podeAvancar() && this.passo() < 3) this.passo.update((p) => p + 1);
+    if (!this.podeAvancar()) return;
+    const ordem = this.fasesVisiveis();
+    const idx = ordem.indexOf(this.fase());
+    if (idx < ordem.length - 1) this.fase.set(ordem[idx + 1]);
   }
 
   voltar(): void {
-    if (this.passo() > 0) this.passo.update((p) => p - 1);
+    const ordem = this.fasesVisiveis();
+    const idx = ordem.indexOf(this.fase());
+    if (idx > 0) this.fase.set(ordem[idx - 1]);
+  }
+
+  exportarModeloCmce(): void {
+    this.notify.info('Modelo de marcação exportado para preenchimento manual no CMCE.');
+  }
+
+  simularMarcacaoMunicipio(): void {
+    this.municipioSimulou.set(true);
+    this.notify.info('Notificação de marcação enviada — município confirmou (simulado).');
   }
 
   confirmar(): void {
+    const vaga = this.vagaSelecionada();
+    const paciente = this.pacienteSelecionado();
+    if (!vaga || !paciente) return;
+
     this.ref.close({
-      pacienteId: this.pacienteSelecionado()?.id,
-      pacienteNome: this.pacienteSelecionado()?.nome,
-      especialidade: this.especialidadeValor,
-      ueId: this.ueSelecionada()?.id,
-      ueNome: this.ueSelecionada()?.nome,
-      municipioNome: this.ueSelecionada()?.municipioNome,
-      data: this.dataValor,
-      hora: this.horaValor,
+      vagaId: vaga.id,
+      pacienteId: paciente.id,
+      pacienteNome: paciente.nome,
+      especialidade: vaga.especialidade,
+      ueId: vaga.ueId,
+      ueNome: vaga.ueNome,
+      municipioNome: vaga.municipioNome,
+      profissionalNome: vaga.profissionalNome,
+      data: vaga.data,
+      hora: vaga.hora,
     });
   }
 }

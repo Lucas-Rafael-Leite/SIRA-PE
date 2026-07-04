@@ -120,4 +120,9 @@ export class EscopoService {
 
     return lista; // Administrador, GRAMB
   }
+
+  /** Verifica se um único item (vaga/consulta) está dentro do escopo de atuação do usuário logado. */
+  estaNoMeuEscopo(item: { ueId?: string; municipioNome?: string }): boolean {
+    return this.filtrarPorHierarquia([item]).length > 0;
+  }
 }

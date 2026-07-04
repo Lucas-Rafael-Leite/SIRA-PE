@@ -307,4 +307,62 @@ como `destinoId`/`autorPerfil` para permitir notificações direcionadas de verd
 > busca — os atributos que efetivamente identificam uma vaga no sistema.
 
 
+---
+
+## 14. Changelog — Agendas, Painel de Vagas e Marcação de Consulta (rodada 3)
+
+### Enviar Agenda (UE)
+- Os campos da agenda (especialidade, profissional, período, vagas) agora são **editáveis** na
+  etapa de preview, antes do envio.
+- A antiga observação sobre CNES foi substituída por uma **checagem de feriado no período**
+  informado, exibida na etapa de validação.
+- Nova seção "Agendas devolvidas — aguardando reenvio": lista as agendas que a regulação
+  devolveu (com o motivo), permitindo corrigir os campos e reenviar em poucos cliques.
+
+### Agendas Recebidas (GERES/GRAMB/Administrador)
+- Clique em qualquer linha para abrir o detalhe completo da agenda (todos os campos, motivo de
+  devolução anterior, observação de feriado, inconsistências).
+- Botão "Devolver agenda" (com motivo obrigatório), que muda o status para "Devolvida" e libera
+  a UE para reenviar.
+- Botão "Exportar para CMCE", simulando o registro da agenda no cadastro estadual.
+
+### Painel de Vagas
+- Agora mostra todas as vagas para todos os perfis (a separação por escopo que existia antes
+  foi removida aqui especificamente, por pedido explícito).
+- Novo filtro por data.
+- Qualquer perfil pode criar um alerta de disponibilidade para uma especialidade — antes essa
+  opção era exclusiva da UE.
+- Clique em uma vaga para abrir o detalhamento completo: se disponível, oferece "Marcar
+  consulta"; se não disponível, mostra quem marcou; sempre exibe o histórico de eventos da vaga
+  (visualizações, marcações, cancelamentos e liberações, com data e responsável).
+- Ação de cancelar vaga preenchida disponível diretamente na tabela (respeitando quem pode
+  agir sobre aquela UE/município/GERES); a vaga cancelada volta a ficar disponível e o evento é
+  registrado no histórico.
+- Nova tela Vagas Estratégicas (menu exclusivo de GRAMB/Administrador), com todas as vagas
+  marcadas como estratégicas no estado.
+
+### Marcação de consulta
+- O fluxo agora começa pela escolha da vaga (restrita às vagas disponíveis dentro do escopo de
+  quem está marcando: Município só vê vagas do próprio município, GERES vê as de seus municípios,
+  GRAMB/Administrador veem todas, UE só vê as da própria unidade), seguida da escolha do paciente.
+- Em seguida há uma etapa de preenchimento no CMCE (dados pré-preenchidos a partir da vaga e do
+  paciente) com opção de exportar o modelo para preenchimento manual, e uma etapa de
+  confirmação que só libera o avanço após confirmar que o status mudou no CMCE.
+- Quando quem está marcando é uma Unidade Executante, essas duas etapas são substituídas por um
+  aviso de que a marcação final é feita pelo município (com notificação simulada) e um botão de
+  demonstração para simular essa confirmação, já que o protótipo não tem um segundo usuário real.
+- Ao confirmar, o paciente sai da fila de espera, a vaga passa para "Agendada" e um log é
+  registrado; ao cancelar uma consulta, a vaga volta a ficar disponível e isso também é logado.
+
+### Outras correções
+- Modo escuro dos diálogos: o tema prebuilt do Angular Material fixava fundo/texto claros em
+  todo mat-dialog, o que quebrava a aparência no tema escuro (mais visível na tela de marcar
+  consulta). Foi adicionada uma sobrescrita global para os diálogos seguirem os tokens do Design
+  System em ambos os temas.
+- Indicador geral: adicionado um texto explicativo, tanto no Dashboard geral quanto no
+  Dashboard Analítico, esclarecendo que é um índice de 0 a 100 que resume ocupação de agenda,
+  absenteísmo e tempo médio de espera de cada GERES.
+- Dashboard: novos cards com a quantidade de agendas enviadas e quantas precisaram ser
+  reenviadas após devolução.
+
 Governo do Estado de Pernambuco · Secretaria Estadual de Saúde · Protótipo de demonstração.

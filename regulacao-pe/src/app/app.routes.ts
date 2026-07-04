@@ -62,6 +62,12 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/painel-vagas/painel-vagas').then((m) => m.PainelVagas),
       },
       {
+        path: 'vagas-estrategicas',
+        canActivate: [perfilGuard(['Administrador', 'GRAMB'])],
+        loadComponent: () =>
+          import('./pages/vagas-estrategicas/vagas-estrategicas').then((m) => m.VagasEstrategicas),
+      },
+      {
         path: 'dashboard-analitico',
         canActivate: [perfilGuard(['Administrador', 'GRAMB', 'GERES'])],
         loadComponent: () =>

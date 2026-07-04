@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AlertaDisponibilidadeVaga } from '../models';
+import { AlertaDisponibilidadeVaga, Usuario } from '../models';
 import { ALERTAS_VAGA_MOCK } from '../mock/alertas-vaga.mock';
 import { comLatencia } from './base-mock.service';
 
@@ -8,15 +8,18 @@ import { comLatencia } from './base-mock.service';
 export class AlertaVagaService {
   private readonly alertas = signal<AlertaDisponibilidadeVaga[]>([...ALERTAS_VAGA_MOCK]);
 
-  listarPorUe(ueId: string): Observable<AlertaDisponibilidadeVaga[]> {
-    return comLatencia(this.alertas().filter((a) => a.ueId === ueId));
+  /** Alertas de disponibilidade criados pelo próprio usuário logado. */
+  listarPorUsuario(usuario: Usuario | null): Observable<AlertaDisponibilidadeVaga[]> {
+    if (!usuario) return comLatencia([]);
+    return comLatencia(this.alertas().filter((a) => a.criadoPorNome === usuario.nome));
   }
 
-  criar(ueId: string, ueNome: string, especialidade: string): void {
+  criar(usuario: Usuario, escopoNome: string, especialidade: string): void {
     const novo: AlertaDisponibilidadeVaga = {
       id: `av-${Math.floor(Math.random() * 90000 + 10000)}`,
-      ueId,
-      ueNome,
+      criadoPorNome: usuario.nome,
+      perfilCriador: usuario.perfil,
+      escopoNome,
       especialidade,
       criadoEm: new Date().toLocaleDateString('pt-BR'),
       ativo: true,

@@ -1,0 +1,75 @@
+.conteudo { min-width: 420px; max-width: 480px; max-height: 70vh; overflow-y: auto; padding-top: 4px; }
+
+.cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  strong { font-size: 15px; }
+  span { display: block; font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+}
+
+.resumo-final { display: flex; flex-direction: column; gap: 4px; }
+.resumo-final__linha {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--surface-divider);
+  span { font-size: 12.5px; color: var(--text-secondary); }
+  strong { font-size: 13px; }
+}
+
+.criar-alerta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  background: var(--color-primary-050);
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  color: var(--color-primary-700);
+}
+
+.titulo-logs { margin-top: 20px; margin-bottom: 8px; font-size: 14px; }
+
+.lista-logs { display: flex; flex-direction: column; gap: 4px; }
+
+.log-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--surface-divider);
+  &:last-child { border-bottom: none; }
+}
+
+.log-item__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+  font-size: 16px;
+  flex-shrink: 0;
+
+  &--marcacao { background: var(--color-sus-100); color: var(--color-sus-700); }
+  &--desmarcacao, &--cancelamento { background: var(--color-alert-100); color: var(--color-alert-700); }
+  &--liberacao { background: var(--color-pending-100); color: var(--color-pending-700); }
+}
+
+.log-item__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  strong { font-size: 12.5px; color: var(--text-primary); }
+  span { font-size: 11px; color: var(--text-secondary); }
+}
+
+.acoes { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 0 4px; }

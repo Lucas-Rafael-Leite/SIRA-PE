@@ -1,11 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Breadcrumb } from '../../shared/components/breadcrumb/breadcrumb';
 import { DataTable, ColunaTabela } from '../../shared/components/data-table/data-table';
 import { AgendaService } from '../../services/agenda.service';
+import { NotificationService } from '../../services/notification.service';
 import { EscopoService } from '../../core/services/escopo.service';
 import { UES_MOCK } from '../../mock';
 import { Agenda } from '../../models';
+import { AgendaDetalheDialog } from './dialogs/agenda-detalhe-dialog';
 
 interface LinhaAgenda extends Record<string, unknown> {
   ueNome: string;
@@ -15,12 +18,13 @@ interface LinhaAgenda extends Record<string, unknown> {
   periodo: string;
   vagas: string;
   status: string;
+  __id: string;
 }
 
 @Component({
   selector: 'app-agendas-recebidas',
   standalone: true,
-  imports: [FormsModule, Breadcrumb, DataTable],
+  imports: [FormsModule, MatDialogModule, Breadcrumb, DataTable],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sira-page sira-fade-in">
@@ -45,10 +49,17 @@ interface LinhaAgenda extends Record<string, unknown> {
           <option value="validada">Validada</option>
           <option value="com_inconsistencias">Com inconsistências</option>
           <option value="publicada">Publicada</option>
+          <option value="devolvida">Devolvida</option>
         </select>
       </div>
 
-      <app-data-table [dados]="linhas()" [colunas]="colunas()" [carregando]="carregando()" [tamanhoPagina]="10" />
+      <app-data-table
+        [dados]="linhas()"
+        [colunas]="colunas()"
+        [carregando]="carregando()"
+        (linhaClicada)="abrirDetalhe($event)"
+        [tamanhoPagina]="10"
+      />
     </div>
   `,
 })
@@ -101,6 +112,7 @@ export class AgendasRecebidas {
 
   linhas = computed<LinhaAgenda[]>(() =>
     this.filtrados().map((a) => ({
+      __id: a.id,
       ueNome: a.ueNome,
       municipioNome: a.municipioNome,
       responsavelUeNome: a.responsavelUeNome,
@@ -121,7 +133,13 @@ export class AgendasRecebidas {
   constructor(
     private agendaService: AgendaService,
     private escopo: EscopoService,
+    private dialog: MatDialog,
+    private notify: NotificationService,
   ) {
+    this.carregar();
+  }
+
+  private carregar(): void {
     this.agendaService.listar().subscribe((dados) => {
       this.agendas.set(dados);
       this.carregando.set(false);
@@ -131,5 +149,18 @@ export class AgendasRecebidas {
   atualizarFiltro(): void {
     this.termoSignal.set(this.termo);
     this.statusSignal.set(this.statusSelecionado);
+  }
+
+  abrirDetalhe(linha: LinhaAgenda): void {
+    const agenda = this.agendas().find((a) => a.id === linha['__id']);
+    if (!agenda) return;
+    const ref = this.dialog.open(AgendaDetalheDialog, { width: '520px', data: { agenda } });
+    ref.afterClosed().subscribe((resultado) => {
+      if (resultado?.devolvida) {
+        this.agendaService.devolver(agenda.id, resultado.motivo);
+        this.notify.sucesso(`Agenda devolvida para ${agenda.ueNome}.`);
+        this.carregar();
+      }
+    });
   }
 }

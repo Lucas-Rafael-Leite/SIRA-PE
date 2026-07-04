@@ -6,6 +6,7 @@ import { DataTable, ColunaTabela } from '../../shared/components/data-table/data
 import { ConsultaService } from '../../services/consulta.service';
 import { NotificationService } from '../../services/notification.service';
 import { EscopoService } from '../../core/services/escopo.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ESPECIALIDADES_MOCK } from '../../mock';
 import { Consulta } from '../../models';
 import { CancelarConsultaDialog } from './dialogs/cancelar-consulta-dialog';
@@ -139,6 +140,7 @@ export class Consultas {
     private dialog: MatDialog,
     private notify: NotificationService,
     private escopo: EscopoService,
+    private auth: AuthService,
   ) {
     this.carregar();
   }
@@ -160,7 +162,7 @@ export class Consultas {
     const ref = this.dialog.open(MarcarConsultaDialog, { width: '520px' });
     ref.afterClosed().subscribe((resultado) => {
       if (resultado) {
-        this.consultaService.marcar(resultado);
+        this.consultaService.marcarComVaga(resultado, this.auth.usuario());
         this.notify.sucesso('Consulta marcada com sucesso.');
         this.carregar();
       }
@@ -177,7 +179,7 @@ export class Consultas {
     });
     ref.afterClosed().subscribe((resultado) => {
       if (resultado) {
-        this.consultaService.cancelar(consulta.id, resultado.motivo);
+        this.consultaService.cancelar(consulta.id, resultado.motivo, this.auth.usuario());
         this.notify.sucesso('Consulta cancelada com sucesso.');
         this.carregar();
       }

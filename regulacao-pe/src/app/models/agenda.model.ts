@@ -1,4 +1,4 @@
-export type StatusAgenda = 'pendente' | 'validada' | 'com_inconsistencias' | 'publicada';
+export type StatusAgenda = 'pendente' | 'validada' | 'com_inconsistencias' | 'publicada' | 'devolvida';
 
 export interface Agenda {
   id: string;
@@ -16,4 +16,10 @@ export interface Agenda {
   enviadaPor: string;
   dataEnvio: string;
   inconsistencias: string[];
+  /** Indica se há um feriado dentro do período informado (substitui a antiga observação de CNES). */
+  observacaoFeriado: string | null;
+  /** Motivo informado por quem devolveu a agenda (GERES/GRAMB/Administrador). */
+  motivoDevolucao?: string | null;
+  /** Quantas vezes esta agenda já precisou ser reenviada após devolução. */
+  vezesReenviada: number;
 }

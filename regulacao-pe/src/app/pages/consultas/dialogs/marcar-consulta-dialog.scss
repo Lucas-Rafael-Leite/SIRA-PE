@@ -50,6 +50,45 @@
 
 .conteudo { min-width: 420px; max-width: 460px; padding-top: 4px; }
 
+.instrucao { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+.vazio { font-size: 13px; color: var(--text-secondary); padding: 12px 0; }
+
+.cmce-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--color-primary-050);
+  color: var(--color-primary-700);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.5;
+
+  .material-icons-round { font-size: 20px; flex-shrink: 0; }
+}
+
+.switch-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0 4px;
+  font-size: 13px;
+  cursor: pointer;
+  input { width: 18px; height: 18px; accent-color: var(--color-primary-600); flex-shrink: 0; }
+}
+
+.validacao-ok {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-sus-100);
+  color: var(--color-sus-700);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 13px;
+}
+
 .campo {
   display: flex;
   flex-direction: column;

@@ -1,17 +1,20 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Breadcrumb } from '../../shared/components/breadcrumb/breadcrumb';
 import { KpiCard } from '../../shared/components/kpi-card/kpi-card';
 import { DataTable, ColunaTabela } from '../../shared/components/data-table/data-table';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { VagaService } from '../../services/vaga.service';
 import { AlertaVagaService } from '../../services/alerta-vaga.service';
+import { VagaLogService } from '../../services/vaga-log.service';
 import { NotificationService } from '../../services/notification.service';
 import { EscopoService } from '../../core/services/escopo.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ESPECIALIDADES_MOCK, GERES_MOCK, MUNICIPIOS_MOCK } from '../../mock';
 import { Vaga, AlertaDisponibilidadeVaga } from '../../models';
+import { VagaDetalheDialog } from './dialogs/vaga-detalhe-dialog';
 
 interface LinhaVaga extends Record<string, unknown> {
   ueNome: string;
@@ -27,7 +30,7 @@ interface LinhaVaga extends Record<string, unknown> {
 @Component({
   selector: 'app-painel-vagas',
   standalone: true,
-  imports: [FormsModule, Breadcrumb, KpiCard, DataTable, EmptyState],
+  imports: [FormsModule, MatDialogModule, Breadcrumb, KpiCard, DataTable, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sira-page sira-fade-in">
@@ -37,7 +40,7 @@ interface LinhaVaga extends Record<string, unknown> {
         <div class="sira-page-header__title">
           <span class="sira-eyebrow">Governança da oferta</span>
           <h1>Painel de Vagas</h1>
-          <p>{{ subtitulo() }}</p>
+          <p>Visão consolidada de todas as vagas ambulatoriais do estado, disponível para todos os perfis.</p>
         </div>
         <button class="btn-secondary" (click)="exportar()">
           <span class="material-icons-round">download</span>
@@ -48,12 +51,8 @@ interface LinhaVaga extends Record<string, unknown> {
       <div class="sira-grid sira-grid--kpi" style="margin-bottom:20px">
         <app-kpi-card label="Vagas totais" [value]="fmt(kpis().total)" icon="grid_view" tone="primary" />
         <app-kpi-card label="Disponíveis" [value]="fmt(kpis().disponiveis)" icon="event_seat" tone="sus" />
-        <app-kpi-card label="Agendadas" [value]="fmt(kpis().agendadas)" icon="event_available" tone="pending" />
-        @if (!ehUe()) {
-          <app-kpi-card label="Estratégicas" [value]="fmt(kpis().estrategicas)" icon="star" tone="alert" />
-        } @else {
-          <app-kpi-card label="Alertas de vaga ativos" [value]="fmt(alertasVaga().length)" icon="notifications_active" tone="alert" />
-        }
+        <app-kpi-card label="Agendadas (preenchidas)" [value]="fmt(kpis().agendadas)" icon="event_available" tone="pending" />
+        <app-kpi-card label="Estratégicas" [value]="fmt(kpis().estrategicas)" icon="star" tone="alert" />
       </div>
 
       <div class="sira-card sira-toolbar filtros-avancados">
@@ -70,18 +69,14 @@ interface LinhaVaga extends Record<string, unknown> {
           <option value="">Especialidade</option>
           @for (e of especialidades; track e) { <option [value]="e">{{ e }}</option> }
         </select>
-        @if (!ehUe() && !ehMunicipio()) {
-          <select class="filtro-select" [(ngModel)]="municipioSelecionado" (ngModelChange)="atualizarFiltro()">
-            <option value="">Município</option>
-            @for (m of municipiosDisponiveis(); track m.id) { <option [value]="m.nome">{{ m.nome }}</option> }
-          </select>
-        }
-        @if (podeVerTodasGeres()) {
-          <select class="filtro-select" [(ngModel)]="geresSelecionada" (ngModelChange)="atualizarFiltro()">
-            <option value="">GERES</option>
-            @for (g of geresLista; track g.id) { <option [value]="g.nome">{{ g.nome }}</option> }
-          </select>
-        }
+        <select class="filtro-select" [(ngModel)]="municipioSelecionado" (ngModelChange)="atualizarFiltro()">
+          <option value="">Município</option>
+          @for (m of MUNICIPIOS_MOCK; track m.id) { <option [value]="m.nome">{{ m.nome }}</option> }
+        </select>
+        <select class="filtro-select" [(ngModel)]="geresSelecionada" (ngModelChange)="atualizarFiltro()">
+          <option value="">GERES</option>
+          @for (g of geresLista; track g.id) { <option [value]="g.nome">{{ g.nome }}</option> }
+        </select>
         <select class="filtro-select" [(ngModel)]="statusSelecionado" (ngModelChange)="atualizarFiltro()">
           <option value="">Status</option>
           <option value="disponivel">Disponível</option>
@@ -90,82 +85,94 @@ interface LinhaVaga extends Record<string, unknown> {
           <option value="realizada">Realizada</option>
           <option value="cancelada">Cancelada</option>
         </select>
+        <label class="campo-data">
+          <span>Data</span>
+          <input type="date" [(ngModel)]="dataSelecionada" (ngModelChange)="atualizarFiltro()" />
+        </label>
+        @if (dataSelecionada) {
+          <button class="link-btn" (click)="limparData()">Limpar data</button>
+        }
       </div>
 
-      @if (ehUe()) {
-        <div class="sira-card panel" style="margin-bottom:20px">
-          <div class="panel__header">
-            <h3>Alertas de disponibilidade de vaga</h3>
-            <span class="sira-eyebrow">Seja notificado quando uma vaga da especialidade abrir</span>
-          </div>
-          <div class="criar-alerta-vaga">
-            <select class="filtro-select" [(ngModel)]="especialidadeAlerta">
-              <option value="">Selecione a especialidade</option>
-              @for (e of especialidades; track e) { <option [value]="e">{{ e }}</option> }
-            </select>
-            <button class="btn-primary" [disabled]="!especialidadeAlerta" (click)="criarAlertaVaga()">
-              <span class="material-icons-round">notification_add</span>
-              Criar alerta
-            </button>
-          </div>
-          @if (alertasVaga().length > 0) {
-            <div class="chips" style="margin-top:12px">
-              @for (a of alertasVaga(); track a.id) {
-                <span class="chip">
-                  {{ a.especialidade }}
-                  <button class="chip__remover" (click)="removerAlertaVaga(a.id)">
-                    <span class="material-icons-round">close</span>
-                  </button>
-                </span>
-              }
-            </div>
-          }
+      <div class="sira-card panel" style="margin-bottom:20px">
+        <div class="panel__header">
+          <h3>Meus alertas de disponibilidade de vaga</h3>
+          <span class="sira-eyebrow">Seja notificado quando uma vaga da especialidade abrir</span>
         </div>
-      }
+        <div class="criar-alerta-vaga">
+          <select class="filtro-select" [(ngModel)]="especialidadeAlerta">
+            <option value="">Selecione a especialidade</option>
+            @for (e of especialidades; track e) { <option [value]="e">{{ e }}</option> }
+          </select>
+          <button class="btn-primary" [disabled]="!especialidadeAlerta" (click)="criarAlertaVaga()">
+            <span class="material-icons-round">notification_add</span>
+            Criar alerta
+          </button>
+        </div>
+        @if (alertasVaga().length > 0) {
+          <div class="chips" style="margin-top:12px">
+            @for (a of alertasVaga(); track a.id) {
+              <span class="chip">
+                {{ a.especialidade }} · {{ a.escopoNome }}
+                <button class="chip__remover" (click)="removerAlertaVaga(a.id)">
+                  <span class="material-icons-round">close</span>
+                </button>
+              </span>
+            }
+          </div>
+        }
+      </div>
 
-      @if (!ehUe()) {
-        <div class="sira-card panel" style="margin-bottom:20px">
-          <div class="panel__header">
-            <h3>Mapa de calor · Vagas por especialidade x status</h3>
-            <span class="sira-eyebrow">{{ vagasFiltradas().length }} vagas no filtro atual</span>
-          </div>
-          @if (especialidadesHeatmap().length === 0) {
-            <app-empty-state icon="grid_off" titulo="Sem dados para o filtro atual" />
-          } @else {
-            <div class="heatmap">
-              <div class="heatmap__row heatmap__row--header">
-                <span></span>
-                @for (s of statusOrdenados; track s) { <span>{{ rotuloStatus(s) }}</span> }
-              </div>
-              @for (esp of especialidadesHeatmap(); track esp) {
-                <div class="heatmap__row">
-                  <span class="heatmap__label">{{ esp }}</span>
-                  @for (s of statusOrdenados; track s) {
-                    <span
-                      class="heatmap__cell"
-                      [style.background]="corCelula(esp, s)"
-                      [title]="contagem(esp, s) + ' vaga(s)'"
-                    >{{ contagem(esp, s) }}</span>
-                  }
-                </div>
-              }
-            </div>
-          }
+      <div class="sira-card panel" style="margin-bottom:20px">
+        <div class="panel__header">
+          <h3>Mapa de calor · Vagas por especialidade x status</h3>
+          <span class="sira-eyebrow">{{ vagasFiltradas().length }} vagas no filtro atual</span>
         </div>
-      }
+        @if (especialidadesHeatmap().length === 0) {
+          <app-empty-state icon="grid_off" titulo="Sem dados para o filtro atual" />
+        } @else {
+          <div class="heatmap">
+            <div class="heatmap__row heatmap__row--header">
+              <span></span>
+              @for (s of statusOrdenados; track s) { <span>{{ rotuloStatus(s) }}</span> }
+            </div>
+            @for (esp of especialidadesHeatmap(); track esp) {
+              <div class="heatmap__row">
+                <span class="heatmap__label">{{ esp }}</span>
+                @for (s of statusOrdenados; track s) {
+                  <span
+                    class="heatmap__cell"
+                    [style.background]="corCelula(esp, s)"
+                    [title]="contagem(esp, s) + ' vaga(s)'"
+                  >{{ contagem(esp, s) }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
 
       <app-data-table
         [dados]="linhas()"
         [colunas]="colunas"
         [carregando]="carregando()"
-        [acoesTemplate]="podeMarcarEstrategica() ? acoesTpl : null"
+        [acoesTemplate]="acoesTpl"
+        (linhaClicada)="abrirDetalhe($event)"
         [tamanhoPagina]="10"
       />
 
       <ng-template #acoesTpl let-linha>
-        <button class="link-btn" [disabled]="linha.estrategica === 'Sim'" (click)="marcarEstrategica(linha)" title="Marcar como estratégica evita perda primária da vaga">
-          Marcar estratégica
-        </button>
+        <div class="acoes-vaga">
+          <button class="link-btn" (click)="abrirDetalhe(linha)">Detalhes</button>
+          @if (linha.status === 'agendada' && podeCancelar(linha)) {
+            <button class="link-btn" (click)="cancelarVaga(linha)">Cancelar</button>
+          }
+          @if (podeMarcarEstrategica() && linha.estrategica === 'Não') {
+            <button class="link-btn" title="Marcar como estratégica evita perda primária da vaga" (click)="marcarEstrategica(linha)">
+              Estratégica
+            </button>
+          }
+        </div>
       </ng-template>
     </div>
   `,
@@ -174,6 +181,7 @@ interface LinhaVaga extends Record<string, unknown> {
 export class PainelVagas implements OnInit {
   especialidades = ESPECIALIDADES_MOCK;
   geresLista = GERES_MOCK;
+  MUNICIPIOS_MOCK = MUNICIPIOS_MOCK;
   statusOrdenados = ['disponivel', 'agendada', 'bloqueada', 'realizada', 'cancelada'];
 
   vagas = signal<Vaga[]>([]);
@@ -185,6 +193,7 @@ export class PainelVagas implements OnInit {
   municipioSelecionado = '';
   geresSelecionada = '';
   statusSelecionado = '';
+  dataSelecionada = '';
   especialidadeAlerta = '';
 
   private termoSignal = signal('');
@@ -192,12 +201,7 @@ export class PainelVagas implements OnInit {
   private municipioSignal = signal('');
   private geresSignal = signal('');
   private statusSignal = signal('');
-
-  ehUe = computed(() => this.escopo.perfil() === 'UnidadeExecutante');
-  ehMunicipio = computed(() => this.escopo.perfil() === 'Municipio');
-  podeVerTodasGeres = computed(() => this.escopo.visualizaTudo());
-
-  municipiosDisponiveis = computed(() => this.escopo.filtrarMunicipios(MUNICIPIOS_MOCK));
+  private dataSignal = signal('');
 
   colunas: ColunaTabela<LinhaVaga>[] = [
     { chave: 'ueNome', titulo: 'Unidade', larguraMin: '200px' },
@@ -209,22 +213,24 @@ export class PainelVagas implements OnInit {
     { chave: 'status', titulo: 'Status', tipo: 'badge' },
   ];
 
-  vagasNoEscopo = computed(() => this.escopo.filtrarPorHierarquia(this.vagas()));
-
+  // O painel mostra TODAS as vagas para TODOS os perfis (não há mais filtro de escopo aqui).
   vagasFiltradas = computed(() => {
     const termo = this.termoSignal().toLowerCase();
     const esp = this.especialidadeSignal();
     const mun = this.municipioSignal();
     const geres = this.geresSignal();
     const status = this.statusSignal();
-    return this.vagasNoEscopo().filter((v) => {
+    const dataFiltro = this.dataSignal();
+    return this.vagas().filter((v) => {
       const bateTermo =
         !termo ||
         v.ueNome.toLowerCase().includes(termo) ||
         v.especialidade.toLowerCase().includes(termo) ||
         v.profissionalNome.toLowerCase().includes(termo);
+      const bateData = !dataFiltro || this.dataParaIso(v.data) === dataFiltro;
       return (
         bateTermo &&
+        bateData &&
         (!esp || v.especialidade === esp) &&
         (!mun || v.municipioNome === mun) &&
         (!geres || v.geresNome === geres) &&
@@ -269,19 +275,14 @@ export class PainelVagas implements OnInit {
       .map(([esp]) => esp);
   });
 
-  subtitulo = computed(() => {
-    if (this.ehUe()) return 'Vagas e agendas da sua unidade executante.';
-    if (this.ehMunicipio()) return 'Vagas das unidades executantes do seu município.';
-    if (this.escopo.perfil() === 'GERES') return 'Vagas das unidades executantes da sua GERES.';
-    return 'Visão consolidada da oferta de vagas ambulatoriais no estado.';
-  });
-
   constructor(
     private vagaService: VagaService,
     private alertaVagaService: AlertaVagaService,
+    private vagaLogService: VagaLogService,
     private notify: NotificationService,
     private escopo: EscopoService,
     private auth: AuthService,
+    private dialog: MatDialog,
     private route: ActivatedRoute,
   ) {
     this.carregar();
@@ -293,9 +294,7 @@ export class PainelVagas implements OnInit {
       this.termo = busca;
       this.termoSignal.set(busca);
     }
-    if (this.ehUe()) {
-      this.carregarAlertasVaga();
-    }
+    this.carregarAlertasVaga();
   }
 
   private carregar(): void {
@@ -306,9 +305,7 @@ export class PainelVagas implements OnInit {
   }
 
   private carregarAlertasVaga(): void {
-    const ueId = this.escopo.vinculoId();
-    if (!ueId) return;
-    this.alertaVagaService.listarPorUe(ueId).subscribe((dados) => this.alertasVaga.set(dados));
+    this.alertaVagaService.listarPorUsuario(this.auth.usuario()).subscribe((dados) => this.alertasVaga.set(dados));
   }
 
   atualizarFiltro(): void {
@@ -317,11 +314,31 @@ export class PainelVagas implements OnInit {
     this.municipioSignal.set(this.municipioSelecionado);
     this.geresSignal.set(this.geresSelecionada);
     this.statusSignal.set(this.statusSelecionado);
+    this.dataSignal.set(this.dataSelecionada);
+  }
+
+  limparData(): void {
+    this.dataSelecionada = '';
+    this.dataSignal.set('');
+  }
+
+  /** Converte "28/07/2026" para "2026-07-28" para comparar com o valor do <input type="date">. */
+  private dataParaIso(dataBr: string): string {
+    const [d, m, a] = dataBr.split('/');
+    if (!d || !m || !a) return '';
+    return `${a}-${m}-${d}`;
   }
 
   podeMarcarEstrategica(): boolean {
-    // A marcação de vaga estratégica evita perda primária e é exclusiva de quem regula (não da UE).
     return this.escopo.perfil() !== 'UnidadeExecutante';
+  }
+
+  podeCancelar(linha: LinhaVaga): boolean {
+    return this.escopo.estaNoMeuEscopo({ ueId: this.vagaOriginal(linha)?.ueId, municipioNome: linha.municipioNome });
+  }
+
+  private vagaOriginal(linha: LinhaVaga): Vaga | undefined {
+    return this.vagas().find((v) => v.id === linha['__id']);
   }
 
   contagem(especialidade: string, status: string): number {
@@ -359,10 +376,29 @@ export class PainelVagas implements OnInit {
     this.carregar();
   }
 
+  cancelarVaga(linha: LinhaVaga): void {
+    const id = linha['__id'];
+    this.vagaService.cancelar(id);
+    this.vagaLogService.registrar(id, 'cancelamento', this.auth.usuario(), 'Vaga cancelada e liberada novamente para agendamento.');
+    this.notify.sucesso('Vaga cancelada e liberada novamente.');
+    this.carregar();
+  }
+
+  abrirDetalhe(linha: LinhaVaga): void {
+    const vaga = this.vagaOriginal(linha);
+    if (!vaga) return;
+    const ref = this.dialog.open(VagaDetalheDialog, { width: '520px', data: { vaga } });
+    ref.afterClosed().subscribe(() => this.carregar());
+  }
+
   criarAlertaVaga(): void {
-    const ue = this.escopo.minhaUe();
-    if (!ue || !this.especialidadeAlerta) return;
-    this.alertaVagaService.criar(ue.id, ue.nome, this.especialidadeAlerta);
+    const usuario = this.auth.usuario();
+    if (!usuario || !this.especialidadeAlerta) return;
+    const escopoNome =
+      usuario.perfil === 'UnidadeExecutante' || usuario.perfil === 'Municipio' || usuario.perfil === 'GERES'
+        ? usuario.vinculoNome
+        : 'Estado de Pernambuco';
+    this.alertaVagaService.criar(usuario, escopoNome, this.especialidadeAlerta);
     this.notify.sucesso(`Você será notificado quando uma vaga de ${this.especialidadeAlerta} abrir.`);
     this.especialidadeAlerta = '';
     this.carregarAlertasVaga();

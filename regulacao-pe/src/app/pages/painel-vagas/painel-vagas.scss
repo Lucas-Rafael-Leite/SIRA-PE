@@ -8,6 +8,32 @@
   h3 { margin: 0; }
 }
 
+.campo-data {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-weight: 600;
+
+  input {
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--surface-card);
+    font-family: var(--font-body);
+  }
+}
+
+.acoes-vaga {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
 .criar-alerta-vaga {
   display: flex;
   gap: 10px;

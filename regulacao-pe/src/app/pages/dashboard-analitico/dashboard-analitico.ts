@@ -61,6 +61,12 @@ const PALETA = ['#1451B4', '#00A859', '#F2B705', '#D32F2F', '#5B6472', '#6FA0F5'
 
       <div class="sira-card panel">
         <h3>Indicador geral por GERES (área)</h3>
+        <p class="explicacao-indicador">
+          <span class="material-icons-round">info</span>
+          O <strong>indicador geral</strong> é um índice de 0 a 100 que resume a ocupação de agenda,
+          o absenteísmo e o tempo médio de espera de cada GERES em um único número — quanto mais
+          próximo de 100, melhor o desempenho da regulação naquela região.
+        </p>
         <app-chart-canvas [config]="chartArea" [altura]="260" />
       </div>
     </div>

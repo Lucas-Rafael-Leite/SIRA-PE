@@ -203,3 +203,27 @@ a:hover { text-decoration: underline; }
   font-weight: 600;
 }
 [data-theme='dark'] .chip { background: var(--surface-elevated); }
+
+// --- Diálogos do Angular Material: forçar uso dos tokens do Design System ---
+// (o tema prebuilt do Material fixa fundo/texto claros; sem isso o modo escuro
+// fica com aparência quebrada em qualquer tela que abra um mat-dialog, como a
+// de marcar consulta, enviar alerta, etc.)
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: var(--surface-card);
+  --mdc-dialog-subhead-color: var(--text-primary);
+  --mdc-dialog-supporting-text-color: var(--text-primary);
+
+  .mdc-dialog__surface {
+    background: var(--surface-card) !important;
+    color: var(--text-primary);
+  }
+
+  .mat-mdc-dialog-title,
+  .mat-mdc-dialog-content {
+    color: var(--text-primary) !important;
+  }
+}
+
+.cdk-overlay-dark-backdrop {
+  background: rgba(10, 14, 20, 0.55);
+}

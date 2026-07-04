@@ -14,4 +14,6 @@ export interface Consulta {
   hora: string;
   status: StatusConsulta;
   origem: 'municipio' | 'ue' | 'geres';
+  /** Referência à vaga original (quando a consulta foi criada a partir do Painel de Vagas). */
+  vagaId?: string;
 }

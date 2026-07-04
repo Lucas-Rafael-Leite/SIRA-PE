@@ -1,3 +1,5 @@
+import { PerfilUsuario } from './usuario.model';
+
 export type StatusVaga = 'disponivel' | 'agendada' | 'bloqueada' | 'realizada' | 'cancelada';
 
 export interface Vaga {
@@ -16,12 +18,26 @@ export interface Vaga {
   pacienteNome?: string;
 }
 
-/** Assinatura de alerta: a UE pede para ser notificada quando uma vaga da especialidade vagar. */
+/** Assinatura de alerta: qualquer perfil pode pedir para ser notificado quando uma vaga da especialidade vagar. */
 export interface AlertaDisponibilidadeVaga {
   id: string;
-  ueId: string;
-  ueNome: string;
+  criadoPorNome: string;
+  perfilCriador: PerfilUsuario;
+  /** Nome do recorte de interesse (UE, município, GERES ou "Estado de Pernambuco"). */
+  escopoNome: string;
   especialidade: string;
   criadoEm: string;
   ativo: boolean;
+}
+
+export type TipoLogVaga = 'visualizacao' | 'marcacao' | 'desmarcacao' | 'cancelamento' | 'liberacao';
+
+export interface LogVaga {
+  id: string;
+  vagaId: string;
+  tipo: TipoLogVaga;
+  usuario: string;
+  perfil: PerfilUsuario;
+  data: string;
+  detalhe: string;
 }

@@ -14,8 +14,9 @@ import { ConsultaService } from '../../services/consulta.service';
 import { UeService } from '../../services/ue.service';
 import { VagaService } from '../../services/vaga.service';
 import { DashboardConfigService } from '../admin/gerenciar-dashboards/dashboard-config.service';
+import { AgendaService } from '../../services/agenda.service';
 import { INDICADORES_GERAIS_MOCK, SERIE_CONSULTAS_MES, MUNICIPIOS_MOCK } from '../../mock';
-import { Geres, Alerta, Consulta, UnidadeExecutante, Vaga } from '../../models';
+import { Geres, Alerta, Consulta, UnidadeExecutante, Vaga, Agenda } from '../../models';
 
 @Component({
   selector: 'app-home',
@@ -155,6 +156,12 @@ import { Geres, Alerta, Consulta, UnidadeExecutante, Vaga } from '../../models';
           <app-kpi-card label="Tempo médio de espera" [value]="indicadores.tempoMedioEsperaDias + ' dias'" icon="hourglass_top" tone="alert" trend="alta" trendLabel="+2 dias vs. meta" />
         </div>
 
+        <div class="sira-grid sira-grid--kpi" style="margin-bottom: 20px">
+          <app-kpi-card label="Agendas enviadas" [value]="fmt(agendasNoEscopo().length)" icon="upload_file" tone="primary" />
+          <app-kpi-card label="Agendas reenviadas" [value]="fmt(agendasReenviadasQtd())" icon="replay" tone="pending" trendLabel="Precisaram de correção após devolução" trend="baixa" />
+          <app-kpi-card label="Agendas devolvidas (aguardando)" [value]="fmt(agendasDevolvidasQtd())" icon="assignment_return" tone="alert" />
+        </div>
+
         @if (widgetVisivel('grafico-consultas') || widgetVisivel('ranking-geres')) {
           <div class="sira-grid sira-grid--2" style="margin-bottom: 20px">
             @if (widgetVisivel('grafico-consultas')) {
@@ -175,6 +182,14 @@ import { Geres, Alerta, Consulta, UnidadeExecutante, Vaga } from '../../models';
                     <a routerLink="/dashboard-analitico">Ver dashboard completo</a>
                   }
                 </div>
+                @if (perfil() !== 'GERES') {
+                  <p class="explicacao-indicador">
+                    <span class="material-icons-round">info</span>
+                    O <strong>indicador geral</strong> é um índice de 0 a 100 que resume, para cada GERES,
+                    a combinação entre ocupação de agenda, absenteísmo e tempo médio de espera — quanto
+                    maior, melhor o desempenho da regulação naquela região.
+                  </p>
+                }
                 @if (perfil() === 'GERES') {
                   <div class="ranking-list">
                     @for (m of municipiosDaGeres(); track m.id) {
@@ -278,6 +293,7 @@ export class Home {
   consultas = signal<Consulta[]>([]);
   ues = signal<UnidadeExecutante[]>([]);
   vagas = signal<Vaga[]>([]);
+  agendas = signal<Agenda[]>([]);
   carregandoAlertas = signal(true);
   carregandoConsultas = signal(true);
 
@@ -294,6 +310,17 @@ export class Home {
   geresOrdenadas = computed(() => [...this.geres()].sort((a, b) => a.ranking - b.ranking).slice(0, 6));
   ultimosAlertas = computed(() => this.alertaService.recebidosPor(this.auth.usuario()).slice(0, 5));
   ultimasConsultas = computed(() => this.escopo.filtrarPorHierarquia(this.consultas()).slice(0, 5));
+
+  agendasNoEscopo = computed(() => {
+    const perfil = this.perfil();
+    if (perfil === 'GERES') {
+      return this.agendas().filter((a) => a.geresNome === this.escopo.vinculoNome());
+    }
+    return this.agendas(); // Administrador e GRAMB veem o total estadual
+  });
+
+  agendasReenviadasQtd = computed(() => this.agendasNoEscopo().filter((a) => a.vezesReenviada > 0).length);
+  agendasDevolvidasQtd = computed(() => this.agendasNoEscopo().filter((a) => a.status === 'devolvida').length);
 
   eyebrow = computed(() => {
     const mapa: Record<string, string> = {
@@ -342,6 +369,7 @@ export class Home {
     private consultaService: ConsultaService,
     private ueService: UeService,
     private vagaService: VagaService,
+    private agendaService: AgendaService,
     private dashboardConfig: DashboardConfigService,
   ) {
     this.geresService.listar().subscribe((g) => this.geres.set(g));
@@ -352,6 +380,7 @@ export class Home {
     });
     this.ueService.listar().subscribe((u) => this.ues.set(u));
     this.vagaService.listar().subscribe((v) => this.vagas.set(v));
+    this.agendaService.listar().subscribe((a) => this.agendas.set(a));
   }
 
   widgetVisivel(id: string): boolean {
