@@ -10,6 +10,7 @@ import {
   SERIE_STATUS_VAGAS,
   GERES_MOCK,
 } from '../../mock';
+import { nomeCurtoGeres } from '../../shared/utils/geres-nome.util';
 
 const PALETA = ['#1451B4', '#00A859', '#F2B705', '#D32F2F', '#5B6472', '#6FA0F5', '#00703C'];
 
@@ -121,7 +122,7 @@ export class DashboardAnalitico {
   chartBarra: ChartConfiguration = {
     type: 'bar',
     data: {
-      labels: GERES_MOCK.map((g) => g.nome.split(' - ')[1] ?? g.nome),
+      labels: GERES_MOCK.map((g) => nomeCurtoGeres(g.nome)),
       datasets: [{ label: 'Consultas/mês', data: GERES_MOCK.map((g) => g.consultasMes), backgroundColor: '#1451B4', borderRadius: 6 }],
     },
     options: {
@@ -135,7 +136,7 @@ export class DashboardAnalitico {
   chartArea: ChartConfiguration = {
     type: 'line',
     data: {
-      labels: GERES_MOCK.map((g) => g.nome.split(' - ')[1] ?? g.nome),
+      labels: GERES_MOCK.map((g) => nomeCurtoGeres(g.nome)),
       datasets: [
         {
           label: 'Indicador geral',

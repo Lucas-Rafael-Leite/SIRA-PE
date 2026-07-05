@@ -4,6 +4,5 @@ export interface Relatorio {
   tipo: string;
   geradoEm: string;
   geradoPor: string;
-  formato: 'PDF' | 'Excel' | 'CSV';
   tamanho: string;
 }

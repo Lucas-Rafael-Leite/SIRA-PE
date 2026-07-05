@@ -69,7 +69,7 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard-analitico',
-        canActivate: [perfilGuard(['Administrador', 'GRAMB', 'GERES'])],
+        canActivate: [perfilGuard(['Administrador', 'GRAMB'])],
         loadComponent: () =>
           import('./pages/dashboard-analitico/dashboard-analitico').then((m) => m.DashboardAnalitico),
       },

@@ -14,7 +14,6 @@ interface LinhaRelatorio extends Record<string, unknown> {
   tipo: string;
   geradoEm: string;
   geradoPor: string;
-  formato: string;
   tamanho: string;
   __id: string;
 }
@@ -85,7 +84,6 @@ export class Relatorios {
     { chave: 'tipo', titulo: 'Tipo' },
     { chave: 'geradoEm', titulo: 'Gerado em' },
     { chave: 'geradoPor', titulo: 'Gerado por' },
-    { chave: 'formato', titulo: 'Formato' },
     { chave: 'tamanho', titulo: 'Tamanho' },
   ];
 

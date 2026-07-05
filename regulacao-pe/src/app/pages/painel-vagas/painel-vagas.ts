@@ -330,7 +330,8 @@ export class PainelVagas implements OnInit {
   }
 
   podeMarcarEstrategica(): boolean {
-    return this.escopo.perfil() !== 'UnidadeExecutante';
+    const perfil = this.escopo.perfil();
+    return perfil === 'Administrador' || perfil === 'GRAMB';
   }
 
   podeCancelar(linha: LinhaVaga): boolean {

@@ -16,6 +16,7 @@ import { VagaService } from '../../services/vaga.service';
 import { DashboardConfigService } from '../admin/gerenciar-dashboards/dashboard-config.service';
 import { AgendaService } from '../../services/agenda.service';
 import { INDICADORES_GERAIS_MOCK, SERIE_CONSULTAS_MES, MUNICIPIOS_MOCK } from '../../mock';
+import { nomeCurtoGeres } from '../../shared/utils/geres-nome.util';
 import { Geres, Alerta, Consulta, UnidadeExecutante, Vaga, Agenda } from '../../models';
 
 @Component({
@@ -150,10 +151,10 @@ import { Geres, Alerta, Consulta, UnidadeExecutante, Vaga, Agenda } from '../../
       <!-- ===================== VISÃO: Administrador / GRAMB / GERES ===================== -->
       @if (perfil() === 'Administrador' || perfil() === 'GRAMB' || perfil() === 'GERES') {
         <div class="sira-grid sira-grid--kpi" style="margin-bottom: 20px">
-          <app-kpi-card label="Consultas no mês" [value]="fmt(indicadores.totalConsultasMes)" icon="event_available" tone="primary" trend="alta" trendLabel="+4,8% vs. mês anterior" />
-          <app-kpi-card label="Vagas disponíveis" [value]="fmt(indicadores.totalVagasDisponiveis)" icon="event_seat" tone="sus" trend="estavel" trendLabel="Estável na semana" />
-          <app-kpi-card label="Absenteísmo médio" [value]="indicadores.absenteismoMedio + '%'" icon="person_off" tone="pending" trend="baixa" trendLabel="-1,2 p.p. no mês" />
-          <app-kpi-card label="Tempo médio de espera" [value]="indicadores.tempoMedioEsperaDias + ' dias'" icon="hourglass_top" tone="alert" trend="alta" trendLabel="+2 dias vs. meta" />
+          <app-kpi-card label="Consultas no mês" [value]="fmt(indicadoresExibidos().totalConsultasMes)" icon="event_available" tone="primary" trend="alta" trendLabel="+4,8% vs. mês anterior" />
+          <app-kpi-card label="Vagas disponíveis" [value]="fmt(indicadoresExibidos().totalVagasDisponiveis)" icon="event_seat" tone="sus" trend="estavel" trendLabel="Estável na semana" />
+          <app-kpi-card label="Absenteísmo médio" [value]="indicadoresExibidos().absenteismoMedio + '%'" icon="person_off" tone="pending" trend="baixa" trendLabel="-1,2 p.p. no mês" />
+          <app-kpi-card label="Tempo médio de espera" [value]="indicadoresExibidos().tempoMedioEsperaDias + ' dias'" icon="hourglass_top" tone="alert" trend="alta" trendLabel="+2 dias vs. meta" />
         </div>
 
         <div class="sira-grid sira-grid--kpi" style="margin-bottom: 20px">
@@ -211,7 +212,7 @@ import { Geres, Alerta, Consulta, UnidadeExecutante, Vaga, Agenda } from '../../
                       <div class="ranking-item">
                         <span class="ranking-item__pos">{{ g.ranking }}º</span>
                         <div class="ranking-item__info">
-                          <strong>{{ g.nome }}</strong>
+                          <strong>{{ nomeCurtoGeres(g.nome) }}</strong>
                           <span>{{ fmt(g.consultasMes) }} consultas/mês</span>
                         </div>
                         <div class="ranking-item__bar">
@@ -286,7 +287,7 @@ import { Geres, Alerta, Consulta, UnidadeExecutante, Vaga, Agenda } from '../../
   styleUrl: './home.scss',
 })
 export class Home {
-  indicadores = INDICADORES_GERAIS_MOCK;
+  readonly nomeCurtoGeres = nomeCurtoGeres;
 
   geres = signal<Geres[]>([]);
   alertas = signal<Alerta[]>([]);
@@ -306,6 +307,28 @@ export class Home {
   municipiosDaGeres = computed(() =>
     MUNICIPIOS_MOCK.filter((m) => m.geresId === this.escopo.vinculoId()).slice(0, 6),
   );
+
+  /** A GERES do usuário logado, quando o perfil atual é GERES. */
+  minhaGeres = computed<Geres | undefined>(() =>
+    this.perfil() === 'GERES' ? this.geres().find((g) => g.id === this.escopo.vinculoId()) : undefined,
+  );
+
+  /**
+   * Indicadores exibidos nos cards do topo: para Administrador/GRAMB é a visão
+   * consolidada do estado; para o perfil GERES, refletem apenas a GERES logada.
+   */
+  indicadoresExibidos = computed(() => {
+    const minhaGeres = this.minhaGeres();
+    if (this.perfil() === 'GERES' && minhaGeres) {
+      return {
+        totalConsultasMes: minhaGeres.consultasMes,
+        totalVagasDisponiveis: minhaGeres.vagasDisponiveis,
+        absenteismoMedio: minhaGeres.absenteismoMedio,
+        tempoMedioEsperaDias: minhaGeres.tempoMedioEsperaDias,
+      };
+    }
+    return INDICADORES_GERAIS_MOCK;
+  });
 
   geresOrdenadas = computed(() => [...this.geres()].sort((a, b) => a.ranking - b.ranking).slice(0, 6));
   ultimosAlertas = computed(() => this.alertaService.recebidosPor(this.auth.usuario()).slice(0, 5));

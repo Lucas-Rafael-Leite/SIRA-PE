@@ -25,14 +25,6 @@ import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
           <option value="Agendas">Agendas</option>
         </select>
       </label>
-      <label class="campo">
-        <span>Formato de exportação</span>
-        <select [(ngModel)]="formato">
-          <option value="PDF">PDF</option>
-          <option value="Excel">Excel</option>
-          <option value="CSV">CSV</option>
-        </select>
-      </label>
     </div>
     <div mat-dialog-actions class="acoes">
       <button class="btn-secondary" (click)="ref.close(null)">Cancelar</button>
@@ -49,9 +41,8 @@ export class CriarRelatorioDialog {
 
   nome = signal('');
   tipo = signal<'Consultas' | 'Vagas' | 'Indicadores' | 'Auditoria' | 'Alertas' | 'Agendas'>('Indicadores');
-  formato = signal<'PDF' | 'Excel' | 'CSV'>('PDF');
 
   gerar(): void {
-    this.ref.close({ nome: this.nome(), tipo: this.tipo(), formato: this.formato() });
+    this.ref.close({ nome: this.nome(), tipo: this.tipo() });
   }
 }
