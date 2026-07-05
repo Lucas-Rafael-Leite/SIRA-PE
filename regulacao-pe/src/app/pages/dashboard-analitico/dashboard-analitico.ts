@@ -85,7 +85,7 @@ export class DashboardAnalitico {
         { label: 'Agendadas', data: SERIE_CONSULTAS_MES.agendadas, borderColor: '#1451B4', backgroundColor: 'rgba(20,81,180,0.08)', tension: 0.35, fill: true },
       ],
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } },
   };
 
   chartRadar: ChartConfiguration = {
@@ -101,7 +101,12 @@ export class DashboardAnalitico {
         },
       ],
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { r: { beginAtZero: true, ticks: { stepSize: 5 } } },
+    },
   };
 
   chartPizza: ChartConfiguration = {

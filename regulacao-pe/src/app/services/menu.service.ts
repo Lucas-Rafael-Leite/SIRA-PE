@@ -11,7 +11,7 @@ const MENU: MenuItem[] = [
   { label: 'Consultas', icon: 'event_available', route: '/consultas', perfis: ['Administrador', 'GRAMB', 'GERES', 'Municipio', 'UnidadeExecutante'] },
   { label: 'Painel de Vagas', icon: 'grid_view', route: '/painel-vagas', perfis: ['Administrador', 'GRAMB', 'GERES', 'Municipio', 'UnidadeExecutante'] },
   { label: 'Vagas Estratégicas', icon: 'star', route: '/vagas-estrategicas', perfis: ['Administrador', 'GRAMB'] },
-  { label: 'Dashboard Analítico', icon: 'monitoring', route: '/dashboard-analitico', perfis: ['Administrador', 'GRAMB', 'GERES'] },
+  { label: 'Dashboard Analítico', icon: 'analytics', route: '/dashboard-analitico', perfis: ['Administrador', 'GRAMB', 'GERES'] },
   { label: 'Relatórios', icon: 'summarize', route: '/relatorios', perfis: ['Administrador', 'GRAMB', 'GERES'] },
   { label: 'Alertas', icon: 'campaign', route: '/alertas', perfis: ['Administrador', 'GRAMB', 'GERES', 'Municipio', 'UnidadeExecutante'] },
   { label: 'Auditoria', icon: 'fact_check', route: '/auditoria', perfis: ['Administrador'] },

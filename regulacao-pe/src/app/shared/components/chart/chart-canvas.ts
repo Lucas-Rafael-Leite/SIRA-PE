@@ -19,8 +19,8 @@ Chart.register(...registerables);
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<div class="chart-canvas" [style.height.px]="altura()"><canvas #canvasRef></canvas></div>`,
   styles: [
-    `.chart-canvas { position: relative; width: 100%; }
-     canvas { width: 100% !important; height: 100% !important; }`,
+    `.chart-canvas { position: relative; width: 100%; display: block; }
+     canvas { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; }`,
   ],
 })
 export class ChartCanvas implements AfterViewInit, OnChanges, OnDestroy {

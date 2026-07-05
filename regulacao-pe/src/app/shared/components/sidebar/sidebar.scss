@@ -21,6 +21,12 @@
   padding: 18px 20px;
   height: var(--header-height);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.sidebar--collapsed .sidebar__brand {
+  padding: 18px 0;
+  justify-content: center;
 }
 
 .sidebar__logo {
@@ -50,33 +56,77 @@
 .sidebar__nav {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 12px 10px;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
+.sidebar--collapsed .sidebar__nav {
+  padding: 12px 6px;
+}
+
 .sidebar__item {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 14px;
+  width: 100%;
+  gap: 10px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
   color: rgba(255, 255, 255, 0.78);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   overflow: hidden;
-  transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
 
-  .material-icons-round { font-size: 20px; flex-shrink: 0; }
+  // Indicador ativo: pseudo-elemento absolutamente posicionado
+  // — não interfere no flex layout nem no box model do item
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: transparent;
+    transition: background var(--duration-fast) var(--ease-standard);
+  }
+
+  .material-icons-round {
+    font-size: 20px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    line-height: 1;
+    vertical-align: middle;
+  }
 
   &:hover { background: rgba(255, 255, 255, 0.08); color: #fff; text-decoration: none; }
 
   &--active {
     background: var(--surface-sidebar-active);
     color: #fff;
-    box-shadow: inset 3px 0 0 var(--color-sus-600);
+
+    &::before { background: var(--color-sus-600); }
   }
+}
+
+.sidebar--collapsed .sidebar__item {
+  justify-content: center;
+  gap: 0;
+  padding: 10px 0;
+
+  &::before { display: none; }
 }
 
 .sidebar__item-label {
@@ -93,6 +143,7 @@
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.8);
   height: 40px;
+  width: 100%;
   cursor: pointer;
   display: flex;
   align-items: center;
