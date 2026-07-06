@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
 import { NotificationService } from '../../../services/notification.service';
 import { Agenda } from '../../../models';
+import { AgendaCompletaDialog } from './agenda-completa-dialog';
 
 export interface AgendaDetalheDialogData {
   agenda: Agenda;
@@ -69,6 +70,10 @@ export interface AgendaDetalheDialogData {
     </div>
 
     <div mat-dialog-actions class="acoes">
+      <button class="btn-secondary" (click)="verAgendaCompleta()">
+        <span class="material-icons-round">calendar_view_week</span>
+        Ver agenda completa
+      </button>
       <button class="btn-secondary" (click)="exportarCmce()">
         <span class="material-icons-round">file_download</span>
         Exportar para CMCE
@@ -96,9 +101,18 @@ export class AgendaDetalheDialog {
   ref = inject(MatDialogRef<AgendaDetalheDialog>);
   data = inject<AgendaDetalheDialogData>(MAT_DIALOG_DATA);
   private notify = inject(NotificationService);
+  private dialog = inject(MatDialog);
 
   mostrarFormularioDevolucao = signal(false);
   motivo = signal('');
+
+  verAgendaCompleta(): void {
+    this.dialog.open(AgendaCompletaDialog, {
+      width: '760px',
+      maxWidth: '95vw',
+      data: { agenda: this.data.agenda },
+    });
+  }
 
   exportarCmce(): void {
     this.notify.info(`Agenda de ${this.data.agenda.ueNome} exportada para registro no CMCE.`);

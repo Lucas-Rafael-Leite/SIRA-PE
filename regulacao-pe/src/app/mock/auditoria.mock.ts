@@ -113,7 +113,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00013",
     "usuario": "Rafael Santos",
     "perfil": "Municipio",
-    "operacao": "Exportação de relatório",
+    "operacao": "Visualização de vaga",
     "modulo": "Vagas",
     "data": "03/06/2026 11:12",
     "ip": "10.58.11.218"
@@ -158,7 +158,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00018",
     "usuario": "Thiago Melo",
     "perfil": "UnidadeExecutante",
-    "operacao": "Login no sistema",
+    "operacao": "Cancelamento de vaga",
     "modulo": "Vagas",
     "data": "12/06/2026 09:26",
     "ip": "10.46.145.8"
@@ -284,7 +284,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00032",
     "usuario": "Paulo Rocha",
     "perfil": "GRAMB",
-    "operacao": "Exportação de relatório",
+    "operacao": "Marcação de vaga como estratégica",
     "modulo": "Vagas",
     "data": "23/06/2026 08:56",
     "ip": "10.245.20.36"
@@ -338,7 +338,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00038",
     "usuario": "Maria Nascimento",
     "perfil": "Administrador",
-    "operacao": "Cancelamento de consulta",
+    "operacao": "Marcação de vaga como estratégica",
     "modulo": "Vagas",
     "data": "11/06/2026 13:59",
     "ip": "10.84.222.16"
@@ -356,7 +356,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00040",
     "usuario": "Adriana Lima",
     "perfil": "GRAMB",
-    "operacao": "Cancelamento de consulta",
+    "operacao": "Cancelamento de vaga",
     "modulo": "Vagas",
     "data": "07/06/2026 17:40",
     "ip": "10.239.169.219"
@@ -365,7 +365,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00041",
     "usuario": "Gustavo Gomes",
     "perfil": "UnidadeExecutante",
-    "operacao": "Envio de alerta",
+    "operacao": "Criação de alerta de vaga",
     "modulo": "Vagas",
     "data": "19/06/2026 07:46",
     "ip": "10.16.71.40"
@@ -446,7 +446,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00050",
     "usuario": "Antônio Araújo",
     "perfil": "GERES",
-    "operacao": "Exportação de relatório",
+    "operacao": "Marcação de consulta",
     "modulo": "Vagas",
     "data": "25/06/2026 14:51",
     "ip": "10.71.63.249"
@@ -617,7 +617,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00069",
     "usuario": "Gustavo Alves",
     "perfil": "Municipio",
-    "operacao": "Validação de agenda",
+    "operacao": "Marcação de consulta",
     "modulo": "Vagas",
     "data": "26/06/2026 15:37",
     "ip": "10.208.175.34"
@@ -725,7 +725,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00081",
     "usuario": "Thiago Pereira",
     "perfil": "GRAMB",
-    "operacao": "Atualização de cadastro",
+    "operacao": "Cancelamento de vaga",
     "modulo": "Vagas",
     "data": "07/06/2026 17:52",
     "ip": "10.124.250.126"
@@ -770,7 +770,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00086",
     "usuario": "Gustavo Santos",
     "perfil": "GRAMB",
-    "operacao": "Atualização de cadastro",
+    "operacao": "Visualização de vaga",
     "modulo": "Vagas",
     "data": "01/06/2026 15:19",
     "ip": "10.207.183.140"
@@ -833,7 +833,7 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00093",
     "usuario": "Antônio Costa",
     "perfil": "GRAMB",
-    "operacao": "Exportação de relatório",
+    "operacao": "Visualização de vaga",
     "modulo": "Vagas",
     "data": "17/06/2026 16:14",
     "ip": "10.230.27.208"
@@ -932,9 +932,81 @@ export const AUDITORIA_MOCK: RegistroAuditoria[] = [
     "id": "aud-00104",
     "usuario": "Luciana Souza",
     "perfil": "Municipio",
-    "operacao": "Atualização de cadastro",
+    "operacao": "Criação de alerta de vaga",
     "modulo": "Vagas",
     "data": "18/06/2026 16:13",
     "ip": "10.9.91.70"
+  },
+  {
+    "id": "aud-00105",
+    "usuario": "Rodrigo Alves",
+    "perfil": "Municipio",
+    "operacao": "Marcação de consulta",
+    "modulo": "Vagas",
+    "data": "20/06/2026 09:14",
+    "ip": "10.127.68.195"
+  },
+  {
+    "id": "aud-00106",
+    "usuario": "Felipe Nascimento",
+    "perfil": "GERES",
+    "operacao": "Visualização de vaga",
+    "modulo": "Vagas",
+    "data": "13/06/2026 15:43",
+    "ip": "10.45.250.52"
+  },
+  {
+    "id": "aud-00107",
+    "usuario": "Eduardo Barros",
+    "perfil": "UnidadeExecutante",
+    "operacao": "Marcação de consulta",
+    "modulo": "Vagas",
+    "data": "07/06/2026 19:57",
+    "ip": "10.191.198.221"
+  },
+  {
+    "id": "aud-00108",
+    "usuario": "Camila Teixeira",
+    "perfil": "GRAMB",
+    "operacao": "Criação de alerta de vaga",
+    "modulo": "Vagas",
+    "data": "15/06/2026 17:11",
+    "ip": "10.173.42.243"
+  },
+  {
+    "id": "aud-00109",
+    "usuario": "Larissa Farias",
+    "perfil": "UnidadeExecutante",
+    "operacao": "Criação de alerta de vaga",
+    "modulo": "Vagas",
+    "data": "25/06/2026 08:30",
+    "ip": "10.161.206.11"
+  },
+  {
+    "id": "aud-00110",
+    "usuario": "Renata Pires",
+    "perfil": "UnidadeExecutante",
+    "operacao": "Marcação de consulta",
+    "modulo": "Vagas",
+    "data": "14/06/2026 10:23",
+    "ip": "10.41.236.133"
+  },
+  {
+    "id": "aud-00111",
+    "usuario": "Marcelo Souza",
+    "perfil": "UnidadeExecutante",
+    "operacao": "Visualização de vaga",
+    "modulo": "Vagas",
+    "data": "02/06/2026 12:08",
+    "ip": "10.110.82.192"
+  },
+  {
+    "id": "aud-00112",
+    "usuario": "Eduardo Barros",
+    "perfil": "GRAMB",
+    "operacao": "Marcação de vaga como estratégica",
+    "modulo": "Vagas",
+    "data": "06/06/2026 15:42",
+    "ip": "10.90.18.29"
   }
 ];
